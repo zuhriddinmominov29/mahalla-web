@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.google.com)",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:doc-14-a0-sheets.googleusercontent.com)",
+      "Bash(python -c \"print\\(''ok''\\)\")",
+      "Bash(node -e \"console.log\\(''node ok''\\)\")",
+      "Bash(grep -r \"firebase\\\\|Firestore\\\\|DEMO_REPORTS\\\\|_loadReports\\\\|_saveTasks\\\\|TASKS_DATA\" 'Z:\\\\mahalla web\\\\js' --include=*.js -l)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "Bash(npm install:*)",
+      "Bash(timeout 5 node -e \":*)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(npx web-push:*)",
+      "WebFetch(domain:mahallics.uz)"
+    ]
+  }
+}

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mahalla Raislari Axborot Tizimi — Hisobot Boshqaruv Platformasi</title>
+
+  <!-- SEO Meta -->
+  <meta name="description" content="O'zbekiston Respublikasi mahalla raislari uchun axborot tizimi. Hisobotlar, topshiriqlar va statistika boshqaruvi.">
+  <meta name="keywords" content="mahalla, mahalla raisi, hisobot, axborot tizimi, O'zbekiston, mahalla tizimi, rais paneli">
+  <meta name="author" content="Mahalla Tizimi">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://mahalla-tizimi.netlify.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mahalla-tizimi.netlify.app/">
+  <meta property="og:title" content="Mahalla Raislari Axborot Tizimi">
+  <meta property="og:description" content="O'zbekiston Respublikasi mahalla raislari uchun hisobot va topshiriqlar boshqaruv platformasi.">
+  <meta property="og:image" content="https://mahalla-tizimi.netlify.app/icons/icon-512.png">
+  <meta property="og:locale" content="uz_UZ">
+  <meta property="og:site_name" content="Mahalla Tizimi">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Mahalla Raislari Axborot Tizimi">
+  <meta name="twitter:description" content="O'zbekiston mahalla raislari uchun hisobot va boshqaruv platformasi.">
+  <meta name="twitter:image" content="https://mahalla-tizimi.netlify.app/icons/icon-512.png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0D2B5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mahalla">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Mahalla Raislari Axborot Tizimi",
+    "description": "O'zbekiston Respublikasi mahalla raislari uchun hisobot va topshiriqlar boshqaruv platformasi",
+    "url": "https://mahalla-tizimi.netlify.app/",
+    "applicationCategory": "GovernmentApplication",
+    "inLanguage": "uz",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "UZS" },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Mahalla Tizimi",
+      "url": "https://mahalla-tizimi.netlify.app/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="login-page">
+
+  <div class="login-bg">
+    <div class="login-overlay"></div>
+    <div class="login-container">
+
+      <!-- Header Emblem -->
+      <div class="login-header">
+        <div class="emblem">
+          <i class="fas fa-landmark"></i>
+        </div>
+        <h1>O'zbekiston Respublikasi</h1>
+        <h2>Mahalla Raislari Axborot Tizimi</h2>
+        <p class="login-subtitle">Hisobot Boshqaruv Platformasi</p>
+      </div>
+
+      <!-- Login Card -->
+      <div class="login-card">
+        <div class="login-card-header">
+          <i class="fas fa-user-shield"></i>
+          <span>Tizimga Kirish</span>
+        </div>
+
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="username">
+              <i class="fas fa-user"></i> Foydalanuvchi nomi
+            </label>
+            <input type="text" id="username" name="username"
+                   placeholder="Login kiriting" autocomplete="username" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">
+              <i class="fas fa-lock"></i> Parol
+            </label>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password"
+                     placeholder="Parol kiriting" autocomplete="current-password" required>
+              <button type="button" class="toggle-pass" onclick="togglePassword()">
+                <i class="fas fa-eye" id="eyeIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="loginError" class="login-error" style="display:none">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="loginErrorMsg">Login yoki parol noto'g'ri</span>
+          </div>
+
+          <button type="submit" class="btn-login" id="loginBtn">
+            <span id="loginBtnText"><i class="fas fa-sign-in-alt"></i> Kirish</span>
+            <span id="loginBtnLoader" style="display:none">
+              <i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...
+            </span>
+          </button>
+        </form>
+
+        <div class="login-footer-note">
+          <i class="fas fa-info-circle"></i>
+          Muammo yuzaga kelsa: <strong>+998 200102947</strong>
+        </div>
+      </div>
+
+      <div class="login-bottom">
+        <p>© 2026 Mahalla Raislari Axborot Tizimi. Barcha huquqlar himoyalangan.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js?v=7"></script>
+  <script src="js/auth.js?v=7"></script>
+  <script>
+    // Toggle password visibility
+    function togglePassword() {
+      const pwd = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        pwd.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    // Login form submit
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const error   = document.getElementById('loginError');
+      const btn     = document.getElementById('loginBtn');
+      const btnText = document.getElementById('loginBtnText');
+      const loader  = document.getElementById('loginBtnLoader');
+
+      error.style.display = 'none';
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      loader.style.display  = 'inline';
+
+      try {
+        const result = await Auth.login(username, password);
+        if (result.success) {
+          if (result.role === 'admin') {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'rais.html';
+          }
+        } else {
+          document.getElementById('loginErrorMsg').textContent = result.message || 'Login yoki parol noto\'g\'ri';
+          error.style.display = 'flex';
+        }
+      } catch(err) {
+        document.getElementById('loginErrorMsg').textContent = 'Xatolik yuz berdi. Qayta urinib ko\'ring.';
+        error.style.display = 'flex';
+      }
+
+      btn.disabled = false;
+      btnText.style.display = 'inline';
+      loader.style.display  = 'none';
+    });
+
+    // Redirect if already logged in
+    (function() {
+      const user = Auth.getUser();
+      if (user) {
+        window.location.href = user.role === 'admin' ? 'admin.html' : 'rais.html';
+      }
+    })();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

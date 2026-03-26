@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Disallow: /admin.html
+Disallow: /rais.html
+Disallow: /hisobot.html
+Disallow: /admin
+Disallow: /rais
+Disallow: /hisobot
+
+Sitemap: https://mahalla-tizimi.netlify.app/sitemap.xml

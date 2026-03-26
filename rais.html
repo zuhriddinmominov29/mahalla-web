@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rais Paneli — Mahalla Tizimi</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0D2B5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mahalla">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/main.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="panel-page">
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-emblem"><i class="fas fa-landmark"></i></div>
+    <div class="sidebar-title">
+      <span class="sidebar-main">Mahalla Tizimi</span>
+      <span class="sidebar-sub">Rais Paneli</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard">
+      <i class="fas fa-home"></i><span>Bosh Sahifa</span>
+    </a>
+    <a href="#" class="nav-item" data-section="submit">
+      <i class="fas fa-file-upload"></i><span>Hisobot Yuklash</span>
+    </a>
+    <a href="#" class="nav-item" data-section="tasks">
+      <i class="fas fa-tasks"></i>
+      <span>Topshiriqlar</span>
+      <span class="nav-badge" id="raisTasksBadge" style="display:none"></span>
+    </a>
+    <a href="#" class="nav-item" data-section="history">
+      <i class="fas fa-history"></i><span>Mening Hisobotlarim</span>
+    </a>
+    <a href="#" class="nav-item" data-section="profile">
+      <i class="fas fa-user-circle"></i><span>Profilim</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-logout">
+    <a href="#" onclick="Auth.logout()" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i><span>Chiqish</span>
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="header-title">
+        <h1 id="pageTitle">Bosh Sahifa</h1>
+        <p id="pageSubtitle">Xush kelibsiz</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-date">
+        <i class="fas fa-calendar-alt"></i>
+        <span id="currentDate"></span>
+      </div>
+      <div class="header-user">
+        <div class="user-avatar"><i class="fas fa-user"></i></div>
+        <div class="user-info">
+          <span class="user-name" id="headerUserName">—</span>
+          <span class="user-role">Mahalla Raisi</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <div class="content-area">
+
+    <!-- ====== DASHBOARD SECTION ====== -->
+    <section id="section-dashboard" class="content-section active">
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Assalomu alaykum, <span id="welcomeName">Rais</span>!</h2>
+          <p>Mahalla axborot tizimiga xush kelibsiz. Bugungi holat:</p>
+        </div>
+        <div class="welcome-icon"><i class="fas fa-hands-helping"></i></div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-grid">
+        <div class="stat-card stat-blue">
+          <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="statTotal">0</span>
+            <span class="stat-label">Jami Hisobotlar</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="statThisMonth">0</span>
+            <span class="stat-label">Bu Oy Yuborilgan</span>
+          </div>
+        </div>
+        <div class="stat-card" id="statTodayCard">
+          <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="statToday">—</span>
+            <span class="stat-label">Bugungi Hisobot</span>
+          </div>
+        </div>
+        <div class="stat-card stat-purple">
+          <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="statActiveTasks">0</span>
+            <span class="stat-label">Faol Topshiriqlar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <h3><i class="fas fa-bolt"></i> Tezkor Amallar</h3>
+        <div class="actions-grid">
+          <button class="action-card" onclick="showSection('submit')">
+            <i class="fas fa-file-upload"></i>
+            <span>Hisobot Yuklash</span>
+          </button>
+          <button class="action-card" onclick="showSection('tasks')">
+            <i class="fas fa-tasks"></i>
+            <span>Topshiriqlarim</span>
+          </button>
+          <button class="action-card" onclick="showSection('history')">
+            <i class="fas fa-list-alt"></i>
+            <span>Hisobotlarimni Ko'rish</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Reports -->
+      <div class="recent-reports">
+        <div class="section-header">
+          <h3><i class="fas fa-clock"></i> So'nggi Hisobotlar</h3>
+        </div>
+        <div id="recentReportsList" class="reports-mini-list">
+          <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== SUBMIT REPORT SECTION ====== -->
+    <section id="section-submit" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-file-upload"></i> Hisobot Yuklash</h3>
+        </div>
+        <div class="card-body">
+          <form id="reportForm">
+            <input type="hidden" id="reportType" name="reportType" value="daily">
+            <input type="hidden" id="reportMonth" name="reportMonth">
+            <input type="hidden" id="reportYear" name="reportYear">
+
+            <div class="form-group">
+              <label><i class="fas fa-calendar"></i> Hisobot Sanasi</label>
+              <input type="date" id="reportDate" name="reportDate" required>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-heading"></i> Hisobot Sarlavhasi</label>
+              <input type="text" id="reportTitle" name="reportTitle"
+                     placeholder="Hisobot sarlavhasini kiriting" required>
+            </div>
+
+            <!-- Category fields -->
+            <div class="report-categories">
+              <h4><i class="fas fa-list-check"></i> Asosiy Ko'rsatkichlar</h4>
+              <div class="indicators-grid">
+                <div class="indicator-item">
+                  <label>Aholidan murojaat soni</label>
+                  <input type="number" id="ind1" name="ind1" placeholder="0" min="0">
+                </div>
+                <div class="indicator-item">
+                  <label>Hal etilgan muammolar</label>
+                  <input type="number" id="ind2" name="ind2" placeholder="0" min="0">
+                </div>
+                <div class="indicator-item">
+                  <label>Oilaviy ziyorat soni</label>
+                  <input type="number" id="ind3" name="ind3" placeholder="0" min="0">
+                </div>
+                <div class="indicator-item">
+                  <label>Yoshlar tadbirlari</label>
+                  <input type="number" id="ind4" name="ind4" placeholder="0" min="0">
+                </div>
+                <div class="indicator-item">
+                  <label>Ijtimoiy yordam oluvchilar</label>
+                  <input type="number" id="ind5" name="ind5" placeholder="0" min="0">
+                </div>
+                <div class="indicator-item">
+                  <label>Uy-joy muammolari</label>
+                  <input type="number" id="ind6" name="ind6" placeholder="0" min="0">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-align-left"></i> Hisobot Matni</label>
+              <textarea id="reportContent" name="reportContent" rows="6"
+                        placeholder="Hisobot tafsilotlarini kiriting..." required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-exclamation-triangle"></i> Muammolar va Takliflar</label>
+              <textarea id="reportIssues" name="reportIssues" rows="3"
+                        placeholder="Mavjud muammolar yoki takliflar..."></textarea>
+            </div>
+
+            <!-- Rasm yuklash -->
+            <div class="form-group photo-upload-group">
+              <label><i class="fas fa-camera" style="color:#C9A227"></i> Rasmlar (ixtiyoriy, max 3 ta)</label>
+              <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Rasm tanlash yoki bu yerga bosing</p>
+                <small>JPG/PNG, har biri max 5 MB</small>
+              </div>
+              <input type="file" id="photoInput" accept="image/*" multiple style="display:none"
+                     onchange="handlePhotoSelect(this)">
+              <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+              <div id="photoUploadStatus" style="display:none"></div>
+            </div>
+
+            <div id="reportSuccess" class="alert-success" style="display:none">
+              <i class="fas fa-check-circle"></i> Hisobot muvaffaqiyatli yuborildi!
+            </div>
+            <div id="reportError" class="alert-error" style="display:none">
+              <i class="fas fa-times-circle"></i> <span id="reportErrorMsg">Xatolik yuz berdi.</span>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" onclick="resetReportForm()">
+                <i class="fas fa-redo"></i> Tozalash
+              </button>
+              <button type="submit" class="btn-primary" id="submitBtn">
+                <i class="fas fa-paper-plane"></i> Yuborish
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== HISTORY SECTION ====== -->
+    <section id="section-history" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-history"></i> Mening Hisobotlarim</h3>
+          <div class="card-header-actions">
+            <select id="historyMonthFilter" onchange="filterHistory()">
+              <option value="all">Barcha oylar</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="historyList" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== TASKS SECTION ====== -->
+    <section id="section-tasks" class="content-section">
+      <div id="taskDetailView" style="display:none">
+        <!-- Topshiriq hisoboti yuborish (JS bilan to'ldiriladi) -->
+      </div>
+      <div id="taskListView">
+        <div class="tasks-page-header">
+          <h2><i class="fas fa-tasks"></i> Mening Topshiriqlarim</h2>
+          <p>Hokimiyat va admin tomonidan berilgan topshiriqlar</p>
+        </div>
+        <div id="raisTasksList">
+          <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== PROFILE SECTION ====== -->
+    <section id="section-profile" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-user-circle"></i> Profilim</h3>
+        </div>
+        <div class="card-body">
+          <div class="profile-container">
+            <div class="profile-avatar-large">
+              <i class="fas fa-user-tie"></i>
+            </div>
+            <div class="profile-info">
+              <div class="profile-row">
+                <span class="profile-label"><i class="fas fa-user"></i> To'liq Ism:</span>
+                <span class="profile-value" id="profileName">—</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><i class="fas fa-home"></i> Mahalla:</span>
+                <span class="profile-value" id="profileMahalla">—</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><i class="fas fa-phone"></i> Telefon:</span>
+                <span class="profile-value" id="profilePhone">—</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><i class="fas fa-envelope"></i> Login:</span>
+                <span class="profile-value" id="profileLogin">—</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label"><i class="fas fa-map-marker-alt"></i> Tuman:</span>
+                <span class="profile-value" id="profileDistrict">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="change-password-section">
+            <h4><i class="fas fa-key"></i> Parolni O'zgartirish</h4>
+            <form id="changePassForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Yangi Parol</label>
+                  <input type="password" id="newPass" placeholder="Yangi parol" minlength="6">
+                </div>
+                <div class="form-group">
+                  <label>Parolni Tasdiqlash</label>
+                  <input type="password" id="confirmPass" placeholder="Parolni qayta kiriting">
+                </div>
+              </div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Saqlash
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- .content-area -->
+</div><!-- .main-content -->
+
+<!-- Report Detail Modal -->
+<div class="modal-overlay" id="reportDetailModal" style="display:none" onclick="closeReportModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="reportModalTitle">Hisobot Tafsiloti</h3>
+      <button class="modal-close" onclick="document.getElementById('reportDetailModal').style.display='none'">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="reportModalBody">
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<script src="js/config.js?v=7"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/api.js?v=7"></script>
+<script src="js/rais.js?v=7"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>

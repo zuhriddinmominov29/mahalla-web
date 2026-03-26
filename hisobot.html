@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foydalanuvchi Qo'llanmasi — Mahalla Tizimi</title>
+  <meta name="robots" content="noindex, nofollow">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 13pt;
+      color: #000;
+      background: #e8eaf0;
+      line-height: 1.75;
+    }
+
+    /* ===== PAGE ===== */
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      background: #fff;
+      padding: 22mm 18mm 18mm 28mm;
+      box-shadow: 0 0 24px rgba(0,0,0,0.18);
+      position: relative;
+    }
+
+    /* ===== NO-PRINT TOOLBAR ===== */
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #0D2B5C;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      flex-wrap: wrap;
+    }
+    .toolbar h2 {
+      color: #C9A227;
+      font-size: 11pt;
+      font-family: Arial, sans-serif;
+      letter-spacing: 0.5px;
+      flex: 1;
+    }
+    .toolbar button {
+      padding: 9px 26px;
+      font-size: 11pt;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity .2s;
+    }
+    .toolbar button:hover { opacity: .85; }
+    .btn-pdf   { background: #C9A227; color: #fff; }
+    .btn-print { background: #2e4a7a; color: #fff; }
+
+    /* ===== COVER ===== */
+    .cover-header {
+      text-align: center;
+      border-bottom: 3px double #0D2B5C;
+      padding-bottom: 14px;
+      margin-bottom: 22px;
+    }
+    .cover-emblem { font-size: 52pt; line-height: 1; margin-bottom: 4px; }
+    .cover-country {
+      font-size: 10pt;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+      color: #0D2B5C;
+    }
+    .cover-org {
+      font-size: 9.5pt;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .doc-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10pt;
+      margin-bottom: 22px;
+      color: #444;
+    }
+
+    .doc-title {
+      text-align: center;
+      margin-bottom: 26px;
+    }
+    .doc-title h1 {
+      font-size: 13.5pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      line-height: 1.5;
+      border-top: 2px solid #0D2B5C;
+      border-bottom: 2px solid #0D2B5C;
+      padding: 8px 0;
+    }
+    .doc-title .badge {
+      display: inline-block;
+      background: #0D2B5C;
+      color: #C9A227;
+      font-size: 10pt;
+      font-weight: bold;
+      letter-spacing: 2px;
+      padding: 3px 16px;
+      margin-top: 8px;
+      border-radius: 3px;
+    }
+    .doc-title .subtitle {
+      font-size: 11pt;
+      font-style: italic;
+      margin-top: 6px;
+      color: #555;
+    }
+
+    /* ===== TABLE OF CONTENTS ===== */
+    .toc { margin: 12px 0 24px; }
+    .toc-title {
+      font-size: 12pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 10px;
+    }
+    .toc-item {
+      display: flex;
+      align-items: baseline;
+      font-size: 11pt;
+      margin-bottom: 5px;
+    }
+    .toc-num { min-width: 32px; font-weight: bold; color: #0D2B5C; }
+    .toc-text { flex: 1; }
+    .toc-dots {
+      flex: 1;
+      border-bottom: 1px dotted #999;
+      margin: 0 6px 3px;
+    }
+    .toc-page { min-width: 30px; text-align: right; color: #555; }
+
+    /* ===== SECTIONS ===== */
+    .section { margin-bottom: 22px; }
+    .section-title {
+      font-size: 12.5pt;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 10px;
+      color: #0D2B5C;
+    }
+    .sub-title {
+      font-size: 12pt;
+      font-weight: bold;
+      margin: 14px 0 8px;
+      color: #1a3a6e;
+    }
+    p {
+      text-indent: 28px;
+      margin-bottom: 8px;
+      text-align: justify;
+    }
+    p.no-indent { text-indent: 0; }
+
+    /* ===== TABLES ===== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 11pt;
+    }
+    th {
+      background: #0D2B5C;
+      color: #fff;
+      padding: 7px 10px;
+      text-align: center;
+      border: 1px solid #000;
+    }
+    td {
+      padding: 6px 10px;
+      border: 1px solid #000;
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td { background: #f4f6fb; }
+    .center { text-align: center; }
+
+    /* ===== INFO BOXES ===== */
+    .info-box {
+      border-left: 4px solid #0D2B5C;
+      background: #eef2fa;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-size: 11pt;
+    }
+    .info-box.success { border-left-color: #2E7D32; background: #e8f5e9; }
+    .info-box.warning { border-left-color: #C9A227; background: #fffde7; }
+    .info-box.danger  { border-left-color: #B71C1C; background: #ffebee; }
+
+    /* ===== STEP LIST ===== */
+    .step-list { margin: 8px 0 12px 20px; }
+    .step-list li { margin-bottom: 7px; font-size: 11pt; }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      background: #0D2B5C;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 9pt;
+      font-weight: bold;
+      margin-right: 8px;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    /* ===== MOCK SCREENS ===== */
+    .screen-wrap {
+      margin: 12px 0 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .screen-caption {
+      background: #0D2B5C;
+      color: #C9A227;
+      font-size: 9.5pt;
+      padding: 5px 14px;
+      font-style: italic;
+      font-family: Arial, sans-serif;
+    }
+    .screen-body {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+    }
+
+    /* login mock */
+    .mock-login {
+      background: linear-gradient(160deg,#0D2B5C,#1E4080);
+      padding: 24px 16px;
+      text-align: center;
+      color: #fff;
+    }
+    .mock-card {
+      background: rgba(255,255,255,.12);
+      border-radius: 10px;
+      max-width: 300px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+    .mock-card-header {
+      background: #1E4080;
+      color: #C9A227;
+      padding: 8px 12px;
+      font-weight: bold;
+      text-align: left;
+    }
+    .mock-card-body {
+      background: #fff;
+      padding: 14px;
+      text-align: left;
+      color: #000;
+    }
+    .mock-label { font-size: 8pt; font-weight: bold; color: #0D2B5C; margin-bottom: 3px; }
+    .mock-input {
+      border: 1.5px solid #CBD5E0;
+      border-radius: 5px;
+      padding: 6px 8px;
+      color: #777;
+      margin-bottom: 10px;
+      font-size: 9pt;
+      width: 100%;
+    }
+    .mock-btn {
+      background: #0D2B5C;
+      color: #fff;
+      text-align: center;
+      padding: 8px;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 9pt;
+    }
+    .mock-help { font-size: 8pt; color: #999; text-align: center; margin-top: 8px; }
+
+    /* panel mock */
+    .mock-panel {
+      background: #EFF2F7;
+      padding: 10px;
+    }
+    .mock-window {
+      background: #fff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .mock-topbar {
+      background: #0a0f1e;
+      color: #fff;
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8.5pt;
+    }
+    .mock-topbar-admin { background: #1a1a2e; }
+    .mock-body { display: flex; min-height: 110px; }
+    .mock-sidebar {
+      width: 120px;
+      background: #0D2B5C;
+      padding: 8px 0;
+      flex-shrink: 0;
+    }
+    .mock-nav-item {
+      padding: 5px 12px;
+      color: rgba(255,255,255,.7);
+      font-size: 7.5pt;
+      cursor: default;
+    }
+    .mock-nav-item.active {
+      background: rgba(201,162,39,.2);
+      color: #C9A227;
+      font-weight: bold;
+    }
+    .mock-content {
+      flex: 1;
+      padding: 10px;
+    }
+
+    /* stats cards */
+    .mock-stats {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .mock-stats-4 { grid-template-columns: repeat(4,1fr); }
+    .mock-stats-5 { grid-template-columns: repeat(5,1fr); }
+    .mock-stats-2 { grid-template-columns: 1fr 1fr; }
+    .stat-card-m {
+      border-radius: 6px;
+      padding: 8px 6px;
+      text-align: center;
+      color: #fff;
+    }
+    .stat-card-m .num { font-size: 14pt; font-weight: bold; line-height: 1.2; }
+    .stat-card-m .lbl { font-size: 6.5pt; opacity: .9; }
+    .c-blue   { background: #1E4080; }
+    .c-green  { background: #2E7D32; }
+    .c-gold   { background: #C9A227; }
+    .c-red    { background: #B71C1C; }
+    .c-teal   { background: #00695C; }
+
+    /* form mock */
+    .mock-form { font-size: 8pt; }
+    .mock-form-row { margin-bottom: 7px; }
+    .mock-form-label { color: #0D2B5C; font-weight: bold; margin-bottom: 2px; }
+    .mock-form-input {
+      border: 1.5px solid #CBD5E0;
+      border-radius: 4px;
+      padding: 4px 7px;
+      color: #555;
+      width: 100%;
+    }
+    .mock-form-textarea {
+      border: 1.5px solid #CBD5E0;
+      border-radius: 4px;
+      padding: 4px 7px;
+      color: #555;
+      width: 100%;
+      height: 36px;
+    }
+    .mock-btn-row { display: flex; gap: 6px; margin-top: 8px; }
+    .mock-btn-primary { background: #0D2B5C; color: #fff; padding: 5px 14px; border-radius: 4px; font-size: 8pt; font-weight: bold; }
+    .mock-btn-secondary { background: #e2e8f0; color: #333; padding: 5px 12px; border-radius: 4px; font-size: 8pt; }
+    .mock-indicators {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .mock-ind-item { }
+    .mock-ind-label { font-size: 7pt; color: #444; margin-bottom: 2px; }
+    .mock-ind-input {
+      border: 1.5px solid #CBD5E0;
+      border-radius: 4px;
+      padding: 3px 6px;
+      width: 100%;
+      font-size: 8pt;
+      color: #888;
+    }
+
+    /* task card mock */
+    .mock-task-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      font-size: 8pt;
+    }
+    .mock-task-title { font-weight: bold; color: #0D2B5C; margin-bottom: 3px; }
+    .mock-task-meta { color: #666; display: flex; gap: 10px; flex-wrap: wrap; }
+    .mock-task-badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 7pt;
+      font-weight: bold;
+    }
+    .badge-urgent { background: #ffebee; color: #B71C1C; }
+    .badge-high   { background: #fff3e0; color: #E65100; }
+    .badge-normal { background: #e8f5e9; color: #2E7D32; }
+    .badge-geo    { background: #e3f2fd; color: #1565C0; }
+    .mock-task-btns { margin-top: 6px; }
+    .mock-task-send { background: #0D2B5C; color: #fff; padding: 3px 10px; border-radius: 4px; font-size: 7.5pt; font-weight: bold; display: inline-block; }
+    .mock-task-done { background: #e8f5e9; color: #2E7D32; padding: 3px 10px; border-radius: 4px; font-size: 7.5pt; font-weight: bold; display: inline-block; }
+
+    /* reports table mock */
+    .mock-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    .mock-table th { background: #0D2B5C; color: #fff; padding: 4px 7px; border: 1px solid #9e9e9e; text-align: center; }
+    .mock-table td { padding: 3px 7px; border: 1px solid #ddd; }
+    .mock-table tr:nth-child(even) td { background: #f8fafc; }
+
+    /* analytics mock */
+    .mock-chart {
+      height: 55px;
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      padding: 4px 0;
+    }
+    .mock-bar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+    }
+
+    /* geo mock */
+    .mock-geo-box {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 7px 10px;
+      margin: 6px 0;
+      font-size: 8pt;
+      background: #f8fafc;
+    }
+    .mock-geo-ok { border-color: #2E7D32; background: #e8f5e9; color: #2E7D32; }
+    .mock-geo-pending { border-color: #C9A227; background: #fffde7; color: #6d5200; }
+    .mock-map {
+      height: 50px;
+      background: #e3f2fd;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1565C0;
+      font-size: 8pt;
+      margin-top: 4px;
+    }
+
+    /* rais grid mock */
+    .rais-grid-mock {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+    .rais-item {
+      border-radius: 5px;
+      padding: 4px 5px;
+      font-size: 6.5pt;
+      text-align: center;
+    }
+    .rais-ok { background: #e8f5e9; color: #1B5E20; }
+    .rais-no { background: #ffebee; color: #B71C1C; }
+
+    /* profile mock */
+    .mock-profile {
+      display: flex;
+      gap: 12px;
+      font-size: 8pt;
+    }
+    .mock-profile-card {
+      flex: 1;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+    .mock-avatar { font-size: 24pt; margin-bottom: 4px; }
+    .mock-info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding: 4px 0; font-size: 7.5pt; }
+    .mock-info-label { color: #666; }
+    .mock-info-value { font-weight: bold; }
+
+    /* ===== SIGNATURE ===== */
+    .signature-section {
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .sig-block { flex: 1; font-size: 11pt; }
+    .sig-line { border-bottom: 1px solid #000; margin: 28px 0 4px; }
+    .sig-label { font-size: 9.5pt; color: #555; }
+
+    /* ===== FOOTER ===== */
+    .doc-footer {
+      margin-top: 28px;
+      padding-top: 8px;
+      border-top: 1px solid #999;
+      font-size: 8.5pt;
+      color: #666;
+      text-align: center;
+    }
+
+    .stamp-area {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 9.5pt;
+      color: #999;
+      font-style: italic;
+    }
+
+    ol.doc-list, ul.doc-list {
+      margin-left: 28px;
+      margin-bottom: 12px;
+    }
+    ol.doc-list li, ul.doc-list li { margin-bottom: 5px; font-size: 11pt; }
+    ul.doc-list { list-style: disc; }
+
+    .page-break { page-break-before: always; }
+    .highlight { background: #FFF9C4; padding: 1px 4px; border-radius: 3px; }
+
+    @media print {
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; padding: 18mm 18mm 18mm 22mm; }
+      .toolbar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== TOOLBAR ===== -->
+<div class="toolbar no-print">
+  <h2>📖 Mahalla Tizimi — Foydalanuvchi Qo'llanmasi</h2>
+  <button class="btn-pdf" id="btnPdf" onclick="downloadPDF()">⬇️ PDF yuklab olish</button>
+  <button class="btn-print" onclick="window.print()">🖨️ Chop etish</button>
+</div>
+<script>
+function downloadPDF() {
+  const btn = document.getElementById('btnPdf');
+  btn.textContent = '⏳ Tayyorlanmoqda...';
+  btn.disabled = true;
+  const wrapper = document.createElement('div');
+  document.querySelectorAll('.page').forEach(p => wrapper.appendChild(p.cloneNode(true)));
+  html2pdf().set({
+    margin: [6,6,6,6],
+    filename: 'Mahalla-Tizimi-Qollanma-2026.pdf',
+    image: { type: 'jpeg', quality: 0.97 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all','css','legacy'] }
+  }).from(wrapper).save().then(() => {
+    btn.textContent = '✅ Yuklandi!';
+    setTimeout(() => { btn.textContent = '⬇️ PDF yuklab olish'; btn.disabled = false; }, 3000);
+  }).catch(() => { btn.textContent = '⬇️ PDF yuklab olish'; btn.disabled = false; });
+}
+</script>
+
+<!-- ===============================================================
+     SAHIFA 1 — Muqova + Mundarija + Kirish
+================================================================ -->
+<div class="page">
+
+  <div class="doc-meta">
+    <span><strong>Hujjat raqami:</strong> MR-QL-2026/03-01</span>
+    <span><strong>Sana:</strong> 18 mart 2026 yil</span>
+  </div>
+
+  <!-- MUQOVA -->
+  <div class="cover-header">
+    <div class="cover-emblem">🏛️</div>
+    <div class="cover-country">O'zbekiston Respublikasi</div>
+    <div class="cover-org">Boysun tumani — Mahalla Raislari Axborot Tizimi</div>
+  </div>
+
+  <div class="doc-title">
+    <h1>«Mahalla Raislari Axborot Tizimi»<br>Saytidan Foydalanish Bo'yicha</h1>
+    <div class="badge">Q O ' L L A N M A</div>
+    <div class="subtitle">(To'liq funksiyasi bilan — Admin va Rais panellari)</div>
+  </div>
+
+  <!-- MUNDARIJA -->
+  <div class="toc">
+    <div class="toc-title">MUNDARIJA</div>
+
+    <div class="toc-item">
+      <span class="toc-num">1.</span>
+      <span class="toc-text">Tizim haqida umumiy ma'lumot</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">1</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">2.</span>
+      <span class="toc-text">Tizimga kirish (Login)</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">1</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">3.</span>
+      <span class="toc-text">Mahalla Raisi paneli — Bosh sahifa</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">2</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">4.</span>
+      <span class="toc-text">Hisobot yuklash</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">2</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">5.</span>
+      <span class="toc-text">Topshiriqlar va hokimiyat topshiriqlari</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">3</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">6.</span>
+      <span class="toc-text">Mening hisobotlarim (tarix)</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">3</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">7.</span>
+      <span class="toc-text">Profil va parol o'zgartirish</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">4</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">8.</span>
+      <span class="toc-text">Administrator paneli — Dashboard</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">4</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">9.</span>
+      <span class="toc-text">Barcha hisobotlar boshqaruvi</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">5</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">10.</span>
+      <span class="toc-text">Raislar ro'yxati</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">5</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">11.</span>
+      <span class="toc-text">Topshiriqlar yaratish va boshqarish</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">5</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">12.</span>
+      <span class="toc-text">Tahlil va statistika grafiklari</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">6</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">13.</span>
+      <span class="toc-text">Tizim sozlamalari</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">6</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">14.</span>
+      <span class="toc-text">Ko'p beriladigan savollar (FAQ)</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">6</span>
+    </div>
+  </div>
+
+  <!-- 1-BO'LIM -->
+  <div class="section">
+    <div class="section-title">1. Tizim Haqida Umumiy Ma'lumot</div>
+    <p>
+      <strong>«Mahalla Raislari Axborot Tizimi»</strong> — Boysun tumani 39 ta mahalla
+      raisi faoliyatini raqamlashtirish va hisobot jarayonlarini avtomatlashtirish uchun
+      mo'ljallangan veb-platforma. Sayt <strong>mahallics.uz</strong> manziliga kirish
+      orqali istalgan qurilmadan (telefon, planshet, kompyuter) foydalanish mumkin.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th style="width:38%">Xususiyat</th><th>Tavsif</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Manzil</strong></td><td>https://mahallics.uz</td></tr>
+        <tr><td><strong>Foydalanuvchi rollari</strong></td><td>2 ta: <em>Mahalla Raisi</em> va <em>Administrator</em></td></tr>
+        <tr><td><strong>Foydalanuvchilar soni</strong></td><td>39 mahalla raisi + 1 administrator</td></tr>
+        <tr><td><strong>Ma'lumotlar bazasi</strong></td><td>Firebase Firestore (bulut)</td></tr>
+        <tr><td><strong>Versiya</strong></td><td>v2.0.0 — 18.03.2026</td></tr>
+        <tr><td><strong>Texnik yordam</strong></td><td>+998 200102947</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2-BO'LIM -->
+  <div class="section">
+    <div class="section-title">2. Tizimga Kirish (Login)</div>
+    <p class="no-indent">
+      Tizimga kirish uchun brauzer (Chrome, Safari, Yandex) orqali
+      <strong>mahallics.uz</strong> manziliga o'ting.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 1-rasm: Tizimga kirish sahifasi</div>
+      <div class="screen-body mock-login">
+        <div style="font-size:22pt; margin-bottom:4px;">🏛️</div>
+        <div style="font-size:9pt; opacity:.85; letter-spacing:1px;">O'ZBEKISTON RESPUBLIKASI</div>
+        <div style="font-size:11.5pt; font-weight:bold; margin:5px 0 2px;">Mahalla Raislari Axborot Tizimi</div>
+        <div style="font-size:8.5pt; opacity:.7; margin-bottom:14px;">Hisobot Boshqaruv Platformasi</div>
+        <div class="mock-card">
+          <div class="mock-card-header">🔐 Tizimga Kirish</div>
+          <div class="mock-card-body">
+            <div class="mock-label">👤 FOYDALANUVCHI NOMI</div>
+            <div class="mock-input">Mahalla nomini yoki "admin" kiriting</div>
+            <div class="mock-label">🔒 PAROL</div>
+            <div class="mock-input">••••••</div>
+            <div class="mock-btn">➜ Kirish</div>
+            <div class="mock-help">ℹ️ Muammo bo'lsa: <strong>+998 200102947</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent" style="margin-top:10px;"><strong>Kirish ma'lumotlari:</strong></p>
+    <table>
+      <thead>
+        <tr><th>Rol</th><th>Login (Foydalanuvchi nomi)</th><th>Parol</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Mahalla Raisi</strong></td>
+          <td>Mahalla nomi (masalan: <span class="highlight">Avlod</span>)</td>
+          <td><span class="highlight">12345</span></td>
+        </tr>
+        <tr>
+          <td><strong>Administrator</strong></td>
+          <td><span class="highlight">admin</span></td>
+          <td><span class="highlight">Admin@2026</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box warning">
+      ⚠️ <strong>Muhim:</strong> Birinchi kirishdan so'ng parolni o'zgartirish tavsiya etiladi.
+      Parol kamida 6 ta belgidan iborat bo'lishi kerak.
+    </div>
+
+    <div class="info-box">
+      ℹ️ Login muvaffaqiyatli bo'lsa, <strong>Raislar</strong> → <code>rais.html</code> sahifasiga,
+      <strong>Administrator</strong> → <code>admin.html</code> sahifasiga yo'naltiriladi.
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; Sahifa 1
+  </div>
+</div>
+
+
+<!-- ===============================================================
+     SAHIFA 2 — Rais paneli: Dashboard + Hisobot yuklash
+================================================================ -->
+<div class="page page-break">
+
+  <!-- 3-BO'LIM -->
+  <div class="section">
+    <div class="section-title">3. Mahalla Raisi Paneli — Bosh Sahifa (Dashboard)</div>
+    <p>
+      Tizimga kirganingizdan so'ng <strong>Bosh Sahifa</strong> ochiladi. Bu sahifada
+      kunlik holat ko'rsatkichlari, so'nggi hisobotlar va tezkor amallar tugmalari mavjud.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 2-rasm: Mahalla Raisi — Bosh Sahifa</div>
+      <div class="screen-body mock-panel">
+        <div class="mock-window">
+          <div class="mock-topbar">
+            <span>☰ &nbsp; Bosh Sahifa <span style="opacity:.6;font-size:7.5pt;">— Xush kelibsiz</span></span>
+            <span>👤 To'rayev O'ral &nbsp;|&nbsp; Mahalla Raisi</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-sidebar">
+              <div class="mock-nav-item active">🏠 Bosh Sahifa</div>
+              <div class="mock-nav-item">📤 Hisobot Yuklash</div>
+              <div class="mock-nav-item">📋 Topshiriqlar <span style="background:#C9A227;color:#fff;border-radius:8px;padding:0 5px;font-size:7pt;">3</span></div>
+              <div class="mock-nav-item">📁 Hisobotlarim</div>
+              <div class="mock-nav-item">👤 Profilim</div>
+            </div>
+            <div class="mock-content">
+              <div style="background:linear-gradient(135deg,#0D2B5C,#1E4080);color:#fff;border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:8pt;">
+                <strong>Assalomu alaykum, To'rayev!</strong><br>
+                <span style="opacity:.8;">Mahalla axborot tizimiga xush kelibsiz.</span>
+              </div>
+              <div class="mock-stats mock-stats-4">
+                <div class="stat-card-m c-blue"><div class="num">12</div><div class="lbl">📄 Jami Hisobotlar</div></div>
+                <div class="stat-card-m c-green"><div class="num">3</div><div class="lbl">📅 Bu Oy</div></div>
+                <div class="stat-card-m c-gold"><div class="num">3</div><div class="lbl">📋 Topshiriqlar</div></div>
+                <div class="stat-card-m c-green"><div class="num">✓</div><div class="lbl">📩 Bugun</div></div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px;font-size:7.5pt;color:#555;">
+                ⚡ <strong>Tezkor:</strong>
+                <span style="background:#0D2B5C;color:#fff;padding:3px 9px;border-radius:4px;margin-left:5px;font-size:7pt;">📤 Hisobot Yuklash</span>
+                <span style="background:#C9A227;color:#fff;padding:3px 9px;border-radius:4px;margin-left:5px;font-size:7pt;">📋 Topshiriqlar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Dashboard ko'rsatkichlari:</strong></p>
+    <table>
+      <thead><tr><th>Kartochka</th><th>Ma'nosi</th></tr></thead>
+      <tbody>
+        <tr><td>📄 Jami Hisobotlar</td><td>Siz yuborgan barcha hisobotlar soni</td></tr>
+        <tr><td>📅 Bu Oy</td><td>Joriy oyda yuborilgan hisobotlar soni</td></tr>
+        <tr><td>📋 Topshiriqlar</td><td>Sizga berilgan faol topshiriqlar soni</td></tr>
+        <tr><td>📩 Bugun (✓/✗)</td><td>Bugun hisobot yuborgansiz yoki yo'qligini ko'rsatadi</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4-BO'LIM -->
+  <div class="section">
+    <div class="section-title">4. Hisobot Yuklash</div>
+    <p>
+      Chap menyu ⟶ <strong>Hisobot Yuklash</strong> bo'limiga o'ting. Bu yerda kunlik va
+      oylik hisobotlarni yuborishingiz mumkin.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 3-rasm: Hisobot yuklash formasi</div>
+      <div class="screen-body mock-panel">
+        <div class="mock-window">
+          <div class="mock-topbar">
+            <span>☰ &nbsp; Hisobot Yuklash</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-sidebar">
+              <div class="mock-nav-item">🏠 Bosh Sahifa</div>
+              <div class="mock-nav-item active">📤 Hisobot Yuklash</div>
+              <div class="mock-nav-item">📋 Topshiriqlar</div>
+              <div class="mock-nav-item">📁 Hisobotlarim</div>
+              <div class="mock-nav-item">👤 Profilim</div>
+            </div>
+            <div class="mock-content mock-form">
+              <div class="mock-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div>
+                  <div class="mock-form-label">📅 Sana *</div>
+                  <div class="mock-form-input">18.03.2026</div>
+                </div>
+                <div>
+                  <div class="mock-form-label">📝 Sarlavha *</div>
+                  <div class="mock-form-input">Martning 18-kuni hisoboti</div>
+                </div>
+              </div>
+              <div class="mock-form-label" style="margin-bottom:4px;">📊 Ko'rsatkichlar</div>
+              <div class="mock-indicators">
+                <div class="mock-ind-item"><div class="mock-ind-label">Aholidan murojaat</div><div class="mock-ind-input">5</div></div>
+                <div class="mock-ind-item"><div class="mock-ind-label">Hal etilgan</div><div class="mock-ind-input">4</div></div>
+                <div class="mock-ind-item"><div class="mock-ind-label">Oilaviy ziyorat</div><div class="mock-ind-input">3</div></div>
+                <div class="mock-ind-item"><div class="mock-ind-label">Yoshlar tadbirlari</div><div class="mock-ind-input">2</div></div>
+                <div class="mock-ind-item"><div class="mock-ind-label">Ijtimoiy yordam</div><div class="mock-ind-input">1</div></div>
+                <div class="mock-ind-item"><div class="mock-ind-label">Uy-joy muammosi</div><div class="mock-ind-input">0</div></div>
+              </div>
+              <div class="mock-form-label">📝 Hisobot Matni *</div>
+              <div class="mock-form-textarea" style="color:#555;font-size:7.5pt;">Bugun mahallada 5 ta murojaat qabul qilindi. 4 tasi hal etildi...</div>
+              <div class="mock-btn-row">
+                <div class="mock-btn-secondary">Tozalash</div>
+                <div class="mock-btn-primary">📤 Yuborish</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent" style="margin-top:8px;"><strong>Hisobot yuborish qadamlari:</strong></p>
+    <ol class="doc-list">
+      <li><strong>Sana</strong> — avtomatik bugungi sana qo'yiladi (o'zgartirsa bo'ladi)</li>
+      <li><strong>Sarlavha</strong> — qisqacha hisobot nomi kiriting (majburiy)</li>
+      <li><strong>Ko'rsatkichlar</strong> — 6 ta raqamli ko'rsatkichni to'ldiring (0 ham kiritilishi mumkin)</li>
+      <li><strong>Hisobot Matni</strong> — bugungi faoliyat haqida batafsil yozing (majburiy)</li>
+      <li><strong>Muammolar</strong> — mavjud muammolar yoki takliflar (ixtiyoriy)</li>
+      <li><strong>«Yuborish»</strong> tugmasini bosing — muvaffaqiyatli yuborilganda yashil xabar chiqadi</li>
+    </ol>
+
+    <div class="info-box warning">
+      ⚠️ <strong>Diqqat:</strong> Sana, Sarlavha va Hisobot Matni <strong>majburiy maydonlar</strong>.
+      Bo'sh qoldirsa tizim yuborishga ruxsat bermaydi.
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; Sahifa 2
+  </div>
+</div>
+
+
+<!-- ===============================================================
+     SAHIFA 3 — Topshiriqlar + Tarix + Profil
+================================================================ -->
+<div class="page page-break">
+
+  <!-- 5-BO'LIM -->
+  <div class="section">
+    <div class="section-title">5. Topshiriqlar va Hokimiyat Topshiriqlari</div>
+    <p>
+      Chap menyu ⟶ <strong>Topshiriqlar</strong> bo'limida administrator tomonidan
+      berilgan topshiriqlar ro'yxati ko'rinadi. Yangi topshiriq kelganda menyu
+      yonida sariq raqamli badge paydo bo'ladi.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 4-rasm: Topshiriqlar ro'yxati</div>
+      <div class="screen-body mock-panel" style="padding:10px;">
+        <div class="mock-task-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="mock-task-title">Yozgi obodonlashtirish ishlarini tashkil etish</div>
+              <div class="mock-task-meta">
+                <span>📅 Berilgan: 15.03.2026</span>
+                <span>⏰ Muddat: <strong>25.03.2026</strong></span>
+                <span class="mock-task-badge badge-high">Muhim</span>
+              </div>
+            </div>
+            <div class="mock-task-send">📤 Hisobot Yuborish</div>
+          </div>
+        </div>
+        <div class="mock-task-card" style="border-color:#e3f2fd;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="mock-task-title">Axborot yig'ilishida qatnashish</div>
+              <div class="mock-task-meta">
+                <span>📅 Berilgan: 17.03.2026</span>
+                <span class="mock-task-badge badge-urgent">Shoshilinch</span>
+                <span class="mock-task-badge badge-geo">📍 Geo majburiy</span>
+              </div>
+            </div>
+            <div class="mock-task-done">✅ Topshirildi</div>
+          </div>
+        </div>
+        <div class="mock-task-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="mock-task-title">Ijtimoiy himoya ro'yxatini yangilash</div>
+              <div class="mock-task-meta">
+                <span>📅 Berilgan: 18.03.2026</span>
+                <span class="mock-task-badge badge-normal">Oddiy</span>
+              </div>
+            </div>
+            <div class="mock-task-send">📤 Hisobot Yuborish</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Topshiriq turlarini farqlash:</strong></p>
+    <table>
+      <thead><tr><th>Badge / Belgi</th><th>Ma'nosi</th><th>Harakat</th></tr></thead>
+      <tbody>
+        <tr><td><span class="mock-task-badge badge-urgent">Shoshilinch</span></td><td>Zudlik bilan bajarilishi kerak</td><td>Birinchi navbatda bajarish</td></tr>
+        <tr><td><span class="mock-task-badge badge-high">Muhim</span></td><td>Muhim topshiriq</td><td>Muddatiga e'tibor bering</td></tr>
+        <tr><td><span class="mock-task-badge badge-normal">Oddiy</span></td><td>Oddiy topshiriq</td><td>Muddatida bajarish</td></tr>
+        <tr><td><span class="mock-task-badge badge-geo">📍 Geo majburiy</span></td><td>Hokimiyat topshirig'i — joylashuv talab etiladi</td><td>Geolokatsiyani aniqlash kerak</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-title">5.1. Hokimiyat Topshirig'i uchun Hisobot Yuborish</div>
+    <p>
+      <strong>«📍 Geo majburiy»</strong> belgisi bor topshiriqlarda hisobot yuborishdan oldin
+      qurilmaning joylashuvini aniqlash majburiy. Shuningdek, rasm biriktirish imkoniyati ham mavjud.
+    </p>
+    <ol class="doc-list">
+      <li><strong>«Hisobot Yuborish»</strong> tugmasini bosing — topshiriq formasi ochiladi</li>
+      <li>Ko'rsatkichlar va hisobot matnini to'ldiring</li>
+      <li><strong>«Joylashuvni Aniqlash»</strong> tugmasini bosing — telefon joylashuvni aniqlaydi</li>
+      <li>Rasm yuklash kerak bo'lsa: <strong>«Rasm yuklash»</strong> maydoniga bosib rasm tanlang (max. 3 ta, har biri 5MB)</li>
+      <li><strong>«Yuborish»</strong> tugmasini bosing</li>
+    </ol>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 5-rasm: Geolokatsiya va rasm yuklash</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <div class="mock-geo-box mock-geo-ok">
+          ✅ <strong>Joylashuv aniqlandi:</strong> 38.18245, 66.94123 (±15m)
+        </div>
+        <div style="margin-top:6px;">
+          <div style="border:1.5px dashed #CBD5E0;border-radius:6px;padding:10px;text-align:center;color:#666;background:#fff;">
+            📷 Rasm yuklash uchun bosing<br>
+            <span style="font-size:7pt;">JPG, PNG — har biri maks. 5MB, jami 3 ta</span>
+          </div>
+        </div>
+        <div style="margin-top:6px;display:flex;gap:6px;">
+          <div style="width:60px;height:50px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;">🖼️</div>
+          <div style="width:60px;height:50px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#999;">🖼️</div>
+        </div>
+        <div class="mock-map">🗺️ Xaritada joylashuv ko'rsatiladi</div>
+      </div>
+    </div>
+
+    <div class="info-box danger">
+      🚫 <strong>Diqqat:</strong> Hokimiyat topshirig'ida <strong>geolokatsiyasiz</strong> hisobot
+      yuborib bo'lmaydi. Agar "Ruxsat yo'q" degan xato chiqsa, brauzer sozlamalarida
+      joylashuv ruxsatini yoqing.
+    </div>
+  </div>
+
+  <!-- 6-BO'LIM -->
+  <div class="section">
+    <div class="section-title">6. Mening Hisobotlarim (Tarix)</div>
+    <p>
+      Chap menyu ⟶ <strong>Mening Hisobotlarim</strong> bo'limida siz yuborgan
+      barcha hisobotlar jadval ko'rinishida ko'rsatiladi.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 6-rasm: Hisobotlar tarixi</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;font-size:8pt;">
+          <span style="color:#0D2B5C;font-weight:bold;">Oy filtri:</span>
+          <select style="border:1.5px solid #CBD5E0;border-radius:4px;padding:3px 7px;font-size:8pt;">
+            <option>Barcha oylar</option>
+            <option selected>Mart 2026</option>
+            <option>Fevral 2026</option>
+          </select>
+        </div>
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Sarlavha</th><th>Sana</th><th>Murojaat</th><th>Hal etilgan</th><th>Oilaviy ziyorat</th><th>Yuborilgan</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>18-mart hisoboti</td><td>18.03.2026</td><td>5</td><td>4</td><td>3</td><td>18.03.2026 10:24</td></tr>
+            <tr><td>2</td><td>17-mart hisoboti</td><td>17.03.2026</td><td>3</td><td>3</td><td>2</td><td>17.03.2026 11:05</td></tr>
+            <tr><td>3</td><td>16-mart hisoboti</td><td>16.03.2026</td><td>7</td><td>6</td><td>4</td><td>16.03.2026 09:47</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Hisobotni batafsil ko'rish:</strong> Jadval qatoriga bosing —
+    modal oyna ochiladi. Unda barcha ko'rsatkichlar, hisobot matni, muammolar va
+    geolokatsiya ma'lumotlari (agar kiritilgan bo'lsa, xaritada ham) ko'rsatiladi.</p>
+
+    <p class="no-indent"><strong>Oy filtri:</strong> Yuqoridagi "Oy filtri" tanlash orqali
+    muayyan oy hisobotlarini ko'rish mumkin.</p>
+  </div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; Sahifa 3
+  </div>
+</div>
+
+
+<!-- ===============================================================
+     SAHIFA 4 — Profil + Admin Dashboard
+================================================================ -->
+<div class="page page-break">
+
+  <!-- 7-BO'LIM -->
+  <div class="section">
+    <div class="section-title">7. Profil va Parol O'zgartirish</div>
+    <p>
+      Chap menyu ⟶ <strong>Profilim</strong> bo'limida shaxsiy ma'lumotlaringizni
+      ko'rishingiz va parolingizni o'zgartirishingiz mumkin.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 7-rasm: Profil sahifasi</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <div class="mock-profile">
+          <div class="mock-profile-card" style="max-width:130px;">
+            <div class="mock-avatar">👤</div>
+            <div style="font-weight:bold;font-size:8.5pt;">To'rayev O'ral</div>
+            <div style="color:#666;font-size:7.5pt;">Mahalla Raisi</div>
+          </div>
+          <div style="flex:2;">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;">
+              <div class="mock-info-row"><span class="mock-info-label">To'liq ism:</span><span class="mock-info-value">To'rayev O'ral Baxtiyorovich</span></div>
+              <div class="mock-info-row"><span class="mock-info-label">Mahalla:</span><span class="mock-info-value">Avlod mahallasi</span></div>
+              <div class="mock-info-row"><span class="mock-info-label">Tuman:</span><span class="mock-info-value">Boysun tumani</span></div>
+              <div class="mock-info-row"><span class="mock-info-label">Telefon:</span><span class="mock-info-value">+998 90 123 45 67</span></div>
+              <div class="mock-info-row"><span class="mock-info-label">Login:</span><span class="mock-info-value">Avlod</span></div>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;margin-top:6px;">
+              <div style="font-weight:bold;color:#0D2B5C;margin-bottom:6px;">🔑 Parol O'zgartirish</div>
+              <div class="mock-form-label">Yangi Parol</div>
+              <div class="mock-form-input" style="margin-bottom:5px;">••••••••</div>
+              <div class="mock-form-label">Parolni Tasdiqlash</div>
+              <div class="mock-form-input" style="margin-bottom:6px;">••••••••</div>
+              <div class="mock-btn-primary" style="display:inline-block;">💾 Saqlash</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Parol talablari:</strong> Yangi parol kamida <strong>6 ta belgidan</strong>
+    iborat bo'lishi kerak. Ikkala maydondagi parol bir xil bo'lishi shart.</p>
+
+    <div class="info-box success">
+      ✅ Parol muvaffaqiyatli o'zgartirilganda tizim "Parol muvaffaqiyatli o'zgartirildi!" xabarini ko'rsatadi.
+    </div>
+  </div>
+
+  <!-- 8-BO'LIM -->
+  <div class="section">
+    <div class="section-title">8. Administrator Paneli — Dashboard</div>
+    <p>
+      Administrator <span class="highlight">admin</span> logini bilan kiradi va
+      barcha 39 ta mahalla raisi faoliyatini nazorat qiladi. Dashboard —
+      tizimning umumiy holat ko'rinishi.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 8-rasm: Admin Dashboard — umumiy ko'rinish</div>
+      <div class="screen-body mock-panel">
+        <div class="mock-window">
+          <div class="mock-topbar mock-topbar-admin">
+            <span>☰ &nbsp; Dashboard <span style="opacity:.6;font-size:7.5pt;">— Umumiy holat</span></span>
+            <span>👤 Administrator &nbsp;|&nbsp; Super Admin</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-sidebar">
+              <div class="mock-nav-item active">📊 Dashboard</div>
+              <div class="mock-nav-item">📄 Hisobotlar</div>
+              <div class="mock-nav-item">👥 Raislar</div>
+              <div class="mock-nav-item">📋 Topshiriqlar</div>
+              <div class="mock-nav-item">📈 Tahlil</div>
+              <div class="mock-nav-item">⚙️ Sozlamalar</div>
+            </div>
+            <div class="mock-content">
+              <div class="mock-stats mock-stats-5">
+                <div class="stat-card-m c-blue"><div class="num">39</div><div class="lbl">👥 Raislar</div></div>
+                <div class="stat-card-m c-green"><div class="num">248</div><div class="lbl">📄 Jami</div></div>
+                <div class="stat-card-m c-gold"><div class="num">12</div><div class="lbl">📅 Bugun</div></div>
+                <div class="stat-card-m c-teal"><div class="num">87</div><div class="lbl">📆 Bu Oy</div></div>
+                <div class="stat-card-m c-red"><div class="num">27</div><div class="lbl">⚠️ Bermagan</div></div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px;margin-bottom:8px;">
+                <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:5px;">📊 Oylik Hisobotlar (2026)</div>
+                <div class="mock-chart">
+                  <div class="mock-bar" style="background:#1E4080;height:30%;"></div>
+                  <div class="mock-bar" style="background:#1E4080;height:55%;"></div>
+                  <div class="mock-bar" style="background:#1E4080;height:40%;"></div>
+                  <div class="mock-bar" style="background:#C9A227;height:100%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                  <div class="mock-bar" style="background:#e2e8f0;height:15%;"></div>
+                </div>
+              </div>
+              <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:5px;">✅ Bugungi holat (12/27)</div>
+              <div class="rais-grid-mock">
+                <div class="rais-item rais-ok">✓ Avlod</div>
+                <div class="rais-item rais-ok">✓ Bahor</div>
+                <div class="rais-item rais-no">✗ Guliston</div>
+                <div class="rais-item rais-ok">✓ Navro'z</div>
+                <div class="rais-item rais-no">✗ Sharq</div>
+                <div class="rais-item rais-ok">✓ Sadoqat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Dashboard elementlari:</strong></p>
+    <table>
+      <thead><tr><th>Element</th><th>Tavsifi</th></tr></thead>
+      <tbody>
+        <tr><td>5 ta statistika kartochkasi</td><td>Jami raislar, hisobotlar, bugungi va oylik hisobotlar, hisobot bermaganlar soni</td></tr>
+        <tr><td>Oylik grafik (bar chart)</td><td>Har oy yuborilgan hisobotlar soni — yil bo'yicha vizual ko'rinish</td></tr>
+        <tr><td>Submission progress</td><td>Bugun necha rais hisobot bergani (masalan: 12/39 — 31%)</td></tr>
+        <tr><td>Rais holati gridi</td><td>Har bir rais bugun hisobot bergan (✓ yashil) yoki bermagan (✗ qizil) ko'rsatiladi</td></tr>
+        <tr><td>So'nggi hisobotlar jadvali</td><td>Oxirgi 10 ta yuborilgan hisobot</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      🔄 Dashboardni yangilash uchun yuqori o'ngdagi <strong>↻ (Yangilash)</strong> tugmasini bosing.
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; Sahifa 4
+  </div>
+</div>
+
+
+<!-- ===============================================================
+     SAHIFA 5 — Admin: Hisobotlar + Raislar + Topshiriqlar
+================================================================ -->
+<div class="page page-break">
+
+  <!-- 9-BO'LIM -->
+  <div class="section">
+    <div class="section-title">9. Barcha Hisobotlar Boshqaruvi</div>
+    <p>
+      Chap menyu ⟶ <strong>Barcha Hisobotlar</strong> — barcha raislar yuborgan
+      hisobotlar birlashtirilgan jadval ko'rinishida. Filtrlash va qidiruv imkoniyati mavjud.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 9-rasm: Barcha hisobotlar ro'yxati</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;">
+          <input style="border:1.5px solid #CBD5E0;border-radius:4px;padding:3px 8px;font-size:7.5pt;" placeholder="🔍 Qidiruv...">
+          <select style="border:1.5px solid #CBD5E0;border-radius:4px;padding:3px 7px;font-size:7.5pt;"><option>Barcha raislar</option></select>
+          <select style="border:1.5px solid #CBD5E0;border-radius:4px;padding:3px 7px;font-size:7.5pt;"><option>Barcha oylar</option></select>
+          <div style="background:#0D2B5C;color:#fff;padding:3px 10px;border-radius:4px;font-size:7.5pt;">📥 Export</div>
+        </div>
+        <table class="mock-table">
+          <thead>
+            <tr><th>#</th><th>Rais</th><th>Mahalla</th><th>Sarlavha</th><th>Sana</th><th>Murojaat</th><th>Hal etilgan</th><th>Ko'r</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>To'rayev O'ral</td><td>Avlod</td><td>18-mart hisoboti</td><td>18.03.2026</td><td>5</td><td>4</td><td style="color:#0D2B5C;">👁</td></tr>
+            <tr><td>2</td><td>Qodirov Jasur</td><td>Bahor</td><td>Kunlik hisobot</td><td>18.03.2026</td><td>3</td><td>3</td><td style="color:#0D2B5C;">👁</td></tr>
+            <tr><td>3</td><td>Toshmatov Akbar</td><td>Navro'z</td><td>Martning 18-kuni</td><td>18.03.2026</td><td>7</td><td>5</td><td style="color:#0D2B5C;">👁</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Imkoniyatlar:</strong> Rais nomi va oy bo'yicha filtrlash,
+    matbuot qidiruvi, hisobotni batafsil ko'rish (joylashuv xaritasi bilan), va
+    <strong>Export</strong> tugmasi orqali ma'lumotlarni yuklab olish.</p>
+  </div>
+
+  <!-- 10-BO'LIM -->
+  <div class="section">
+    <div class="section-title">10. Raislar Ro'yxati</div>
+    <p>
+      Chap menyu ⟶ <strong>Raislar Ro'yxati</strong> — 39 mahalla raisi
+      ma'lumotlari: ism, mahalla, telefon raqam va faollik holati.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 10-rasm: Raislar ro'yxati</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <table class="mock-table">
+          <thead>
+            <tr><th>#</th><th>To'liq Ism</th><th>Mahalla</th><th>Login</th><th>Telefon</th><th>Bu Oy Hisobotlar</th><th>Holat</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>To'rayev O'ral</td><td>Avlod</td><td>Avlod</td><td>+998 90 123 45 67</td><td>3</td><td style="color:#2E7D32;font-weight:bold;">✅ Faol</td></tr>
+            <tr><td>2</td><td>Qodirov Jasur</td><td>Bahor</td><td>Bahor</td><td>+998 91 234 56 78</td><td>0</td><td style="color:#B71C1C;font-weight:bold;">⚠️ Bermagan</td></tr>
+            <tr><td>3</td><td>Toshmatov Akbar</td><td>Navro'z</td><td>Navruz</td><td>+998 93 345 67 89</td><td>5</td><td style="color:#2E7D32;font-weight:bold;">✅ Faol</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="no-indent">Jadvalda har bir raisning bu oyda nechta hisobot yuborgani ko'rsatiladi.
+    <strong>«Bermagan»</strong> holati — joriy oyda birorta hisobot yuborilmaganini bildiradi.</p>
+  </div>
+
+  <!-- 11-BO'LIM -->
+  <div class="section">
+    <div class="section-title">11. Topshiriqlar Yaratish va Boshqarish</div>
+    <p>
+      Chap menyu ⟶ <strong>Topshiriqlar</strong> bo'limida administrator yangi
+      topshiriqlar yaratadi va raislar hisobotlarini ko'radi.
+    </p>
+
+    <div class="sub-title">11.1. Yangi topshiriq yaratish</div>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 11-rasm: Yangi topshiriq yaratish formasi</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:10px;">
+          <div style="font-weight:bold;color:#0D2B5C;margin-bottom:8px;font-size:9pt;">➕ Yangi Topshiriq</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+            <div>
+              <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:2px;">📝 Topshiriq sarlavhasi *</div>
+              <div style="border:1.5px solid #CBD5E0;border-radius:4px;padding:4px 7px;color:#555;">Obodonlashtirish ishlarini tashkil etish</div>
+            </div>
+            <div>
+              <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:2px;">⚡ Muhimlik darajasi</div>
+              <div style="border:1.5px solid #CBD5E0;border-radius:4px;padding:4px 7px;color:#555;">▼ Muhim</div>
+            </div>
+          </div>
+          <div style="margin-bottom:6px;">
+            <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:2px;">📄 Tavsif</div>
+            <div style="border:1.5px solid #CBD5E0;border-radius:4px;padding:4px 7px;color:#555;height:28px;">Barcha raislar mahallada obodonlashtirish ishlarini...</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+            <div>
+              <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:2px;">📅 Muddat</div>
+              <div style="border:1.5px solid #CBD5E0;border-radius:4px;padding:4px 7px;color:#555;">25.03.2026</div>
+            </div>
+            <div>
+              <div style="font-size:7.5pt;font-weight:bold;color:#0D2B5C;margin-bottom:2px;">👥 Kimga?</div>
+              <div style="border:1.5px solid #CBD5E0;border-radius:4px;padding:4px 7px;color:#555;">▼ Barcha raislar</div>
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <div style="background:#e3f2fd;color:#1565C0;border:1px solid #90CAF9;border-radius:4px;padding:4px 7px;font-size:7.5pt;">
+                ☑️ Hokimiyat topshirig'i (Geo)
+              </div>
+            </div>
+          </div>
+          <div class="mock-btn-row">
+            <div class="mock-btn-secondary">Bekor qilish</div>
+            <div class="mock-btn-primary">➕ Topshiriq Yaratish</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Topshiriq maydonlari:</strong></p>
+    <table>
+      <thead><tr><th>Maydon</th><th>Tavsif</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Sarlavha *</strong></td><td>Topshiriq nomi (majburiy)</td></tr>
+        <tr><td><strong>Muhimlik darajasi</strong></td><td>Past / Oddiy / Muhim / Shoshilinch</td></tr>
+        <tr><td><strong>Tavsif</strong></td><td>Topshiriq haqida batafsil izoh</td></tr>
+        <tr><td><strong>Muddat</strong></td><td>Topshiriqni bajarish muddati</td></tr>
+        <tr><td><strong>Kimga?</strong></td><td>Barcha raislar yoki muayyan bir rais</td></tr>
+        <tr><td><strong>☑️ Hokimiyat topshirig'i</strong></td><td>Belgilansa — raisdan geolokatsiya va rasm majburiy bo'ladi</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-title">11.2. Topshiriq ijrosini nazorat qilish</div>
+    <p class="no-indent">
+      Yaratilgan topshiriqlar ro'yxatida har bir topshiriq uchun
+      <strong>necha rais hisobot bergani</strong> ko'rsatiladi (masalan: 12/39).
+      Topshiriqga bosib, ijro hisobotlarini (geolokatsiya va rasmlar bilan) ko'rish mumkin.
+    </p>
+  </div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; Sahifa 5
+  </div>
+</div>
+
+
+<!-- ===============================================================
+     SAHIFA 6 — Tahlil + Sozlamalar + FAQ + Imzo
+================================================================ -->
+<div class="page page-break">
+
+  <!-- 12-BO'LIM -->
+  <div class="section">
+    <div class="section-title">12. Tahlil va Statistika Grafiklari</div>
+    <p>
+      Chap menyu ⟶ <strong>Tahlil</strong> bo'limida tizim statistikasi va grafiklari
+      ko'rsatiladi. Bu bo'lim faqat administrator uchun mo'ljallangan.
+    </p>
+
+    <div class="screen-wrap">
+      <div class="screen-caption">🖥️ 12-rasm: Tahlil va grafiklari</div>
+      <div class="screen-body" style="padding:10px;background:#f8fafc;font-family:Arial,sans-serif;font-size:8pt;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;">
+            <div style="font-weight:bold;color:#0D2B5C;margin-bottom:5px;">📊 Oylik Hisobotlar Dinamikasi</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:7.5pt;margin-bottom:5px;">
+              <span>Yil:</span>
+              <select style="border:1.5px solid #CBD5E0;border-radius:3px;padding:2px 5px;font-size:7pt;"><option>2026</option></select>
+            </div>
+            <div class="mock-chart">
+              <div class="mock-bar" style="background:#1E4080;height:35%;"></div>
+              <div class="mock-bar" style="background:#1E4080;height:60%;"></div>
+              <div class="mock-bar" style="background:#1E4080;height:48%;"></div>
+              <div class="mock-bar" style="background:#C9A227;height:100%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+              <div class="mock-bar" style="background:#e2e8f0;height:8%;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;color:#888;font-size:6.5pt;padding-top:2px;">
+              <span>Yan</span><span>Fev</span><span>Mar</span><span>Apr</span><span>May</span><span>Iyn</span><span>Iyl</span><span>Avg</span><span>Sen</span><span>Okt</span><span>Noy</span><span>Dek</span>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;">
+            <div style="font-weight:bold;color:#0D2B5C;margin-bottom:5px;">🍩 Hisobot Holati (Mart)</div>
+            <div style="display:flex;align-items:center;justify-content:center;height:70px;gap:14px;">
+              <div style="width:65px;height:65px;border-radius:50%;background:conic-gradient(#2E7D32 0% 67%,#B71C1C 67% 100%);"></div>
+              <div>
+                <div style="font-size:7pt;"><span style="color:#2E7D32;">■</span> Yuborgan: 26 ta</div>
+                <div style="font-size:7pt;margin-top:3px;"><span style="color:#B71C1C;">■</span> Bermagan: 13 ta</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px;margin-top:8px;">
+          <div style="font-weight:bold;color:#0D2B5C;margin-bottom:5px;">🏆 TOP-5 Faol Raislar (Bu Oy)</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:7.5pt;">
+              <span style="background:#C9A227;color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:bold;">1</span>
+              <span>To'rayev O'ral (Avlod)</span>
+              <span style="margin-left:auto;font-weight:bold;color:#0D2B5C;">8 ta</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:7.5pt;">
+              <span style="background:#9e9e9e;color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:bold;">2</span>
+              <span>Qodirov Jasur (Bahor)</span>
+              <span style="margin-left:auto;font-weight:bold;color:#0D2B5C;">7 ta</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:7.5pt;">
+              <span style="background:#CD7F32;color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:bold;">3</span>
+              <span>Toshmatov Akbar (Navro'z)</span>
+              <span style="margin-left:auto;font-weight:bold;color:#0D2B5C;">6 ta</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="no-indent"><strong>Tahlil bo'limidagi grafik va jadvallar:</strong></p>
+    <ul class="doc-list">
+      <li><strong>Oylik bar grafik</strong> — yil davomida har oyda nechta hisobot yuborilgani</li>
+      <li><strong>Donut grafik</strong> — joriy oyda hisobot bergan va bermagan raislar nisbati</li>
+      <li><strong>TOP-5 faol raislar</strong> — eng ko'p hisobot yuborgan raislar reytingi</li>
+      <li><strong>Kunlik dinamika</strong> — oxirgi 30 kunda kunlik hisobotlar soni</li>
+      <li><strong>Ko'rsatkichlar grafigi</strong> — barcha 6 ta indikator bo'yicha umumiy statistika</li>
+    </ul>
+  </div>
+
+  <!-- 13-BO'LIM -->
+  <div class="section">
+    <div class="section-title">13. Tizim Sozlamalari</div>
+    <p>
+      Chap menyu ⟶ <strong>Sozlamalar</strong> bo'limida administrator
+      tizim parametrlarini boshqarishi mumkin.
+    </p>
+    <ul class="doc-list">
+      <li><strong>Ma'lumotlarni tozalash</strong> — barcha hisobotlarni o'chirish (ehtiyotkorlik bilan!)</li>
+      <li><strong>Tizim haqida</strong> — versiya, domen, Firebase holati</li>
+      <li><strong>Admin paroli</strong> — administrator paroli o'zgartirilishi</li>
+    </ul>
+    <div class="info-box danger">
+      🚫 <strong>Ogohlantirish:</strong> «Ma'lumotlarni tozalash» tugmasi barcha hisobotlarni
+      qaytarib bo'lmaydigan tarzda o'chiradi. Faqat zarur holatlarda foydalaning.
+    </div>
+  </div>
+
+  <!-- 14-BO'LIM -->
+  <div class="section">
+    <div class="section-title">14. Ko'p Beriladigan Savollar (FAQ)</div>
+
+    <table>
+      <thead><tr><th style="width:45%">Savol</th><th>Javob</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Parolimni unutdim, nima qilaman?</td>
+          <td><strong>+998 200102947</strong> ga qo'ng'iroq qiling — texnik mutaxassis parolni tiklaydi</td>
+        </tr>
+        <tr>
+          <td>«Geolokatsiya ruxsati yo'q» xatosi chiqmoqda</td>
+          <td>Brauzer sozlamalarida mahallics.uz uchun joylashuv ruxsatini yoqing yoki boshqa brauzer (Chrome) ishlating</td>
+        </tr>
+        <tr>
+          <td>Hisobot yuborganimdan keyin o'zgartirsa bo'ladimi?</td>
+          <td>Yuborilgan hisobotni o'zgartirish imkoni yo'q. Yangi hisobot yuboring va izohlarda sababini yozing</td>
+        </tr>
+        <tr>
+          <td>Rasm nechta va qanday hajmda bo'lishi kerak?</td>
+          <td>Maksimal <strong>3 ta</strong> rasm, har biri <strong>5MB</strong> gacha. JPG yoki PNG formatida</td>
+        </tr>
+        <tr>
+          <td>Tizim sekin ishlayapti</td>
+          <td>Internet aloqangizni tekshiring. Brauzer keshini tozalang. Boshqa brauzer sinab ko'ring</td>
+        </tr>
+        <tr>
+          <td>Telefonga ilovani qanday yuklab olaman?</td>
+          <td>mahallics.uz ni brauzerda ochib, «Asosiy ekranga qo'shish» tugmasini bosing (PWA)</td>
+        </tr>
+        <tr>
+          <td>Topshiriq "O'tgan" deb ko'rsatilyapti</td>
+          <td>Muddat o'tib ketgan. Imkon bo'lsa tezda hisobot yuboring va izohlarda kechikish sababini yozing</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      📞 <strong>Texnik yordam:</strong> Mo'minov Zuhriddin — <strong>+998 200102947</strong><br>
+      🌐 <strong>Sayt manzili:</strong> https://mahallics.uz
+    </div>
+  </div>
+
+  <!-- IMZO -->
+  <div class="signature-section">
+    <div class="sig-block">
+      <div><strong>Tuzuvchi:</strong></div>
+      <div style="font-size:11pt;margin-top:5px;">Dasturchi</div>
+      <div class="sig-line"></div>
+      <div style="font-size:12pt;font-weight:bold;">Mo'minov Zuhriddin</div>
+    </div>
+    <div class="sig-block">
+      <div><strong>Mas'ul shaxs:</strong></div>
+      <div style="font-size:11pt;margin-top:5px;">Ijro apparati rahbari</div>
+      <div class="sig-line"></div>
+      <div style="font-size:12pt;font-weight:bold;">Namozov Baxtiyor</div>
+    </div>
+  </div>
+
+  <div class="stamp-area">[ M.O' ]</div>
+
+  <div class="doc-footer">
+    MR-QL-2026/03-01 &nbsp;|&nbsp; Mahalla Raislari Axborot Tizimi Qo'llanmasi &nbsp;|&nbsp; mahallics.uz &nbsp;|&nbsp; 18.03.2026
+  </div>
+</div>
+
+</body>
+</html>

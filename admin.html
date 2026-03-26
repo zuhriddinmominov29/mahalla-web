@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Mahalla Tizimi</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="manifest" href="manifest-admin.json">
+  <meta name="theme-color" content="#0D2B5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mahalla Admin">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/main.css?v=3">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="panel-page admin-panel">
+
+<!-- Sidebar -->
+<div class="sidebar admin-sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-emblem admin-emblem"><i class="fas fa-shield-alt"></i></div>
+    <div class="sidebar-title">
+      <span class="sidebar-main">Mahalla Tizimi</span>
+      <span class="sidebar-sub">Admin Panel</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-section="dashboard">
+      <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+    </a>
+    <a href="#" class="nav-item" data-section="reports">
+      <i class="fas fa-file-alt"></i><span>Barcha Hisobotlar</span>
+    </a>
+    <a href="#" class="nav-item" data-section="raislar">
+      <i class="fas fa-users"></i><span>Raislar Ro'yxati</span>
+    </a>
+    <a href="#" class="nav-item" data-section="tasks">
+      <i class="fas fa-tasks"></i>
+      <span>Topshiriqlar</span>
+      <span class="nav-badge" id="activeTasksBadge" style="display:none"></span>
+    </a>
+    <a href="#" class="nav-item" data-section="analytics">
+      <i class="fas fa-chart-line"></i><span>Tahlil</span>
+    </a>
+    <a href="#" class="nav-item" data-section="settings">
+      <i class="fas fa-cog"></i><span>Sozlamalar</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-logout">
+    <a href="#" onclick="Auth.logout()" class="logout-btn">
+      <i class="fas fa-sign-out-alt"></i><span>Chiqish</span>
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+
+  <!-- Top Header -->
+  <header class="top-header admin-header">
+    <div class="header-left">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="header-title">
+        <h1 id="pageTitle">Dashboard</h1>
+        <p id="pageSubtitle">Umumiy holat ko'rinishi</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-date">
+        <i class="fas fa-calendar-alt"></i>
+        <span id="currentDate"></span>
+      </div>
+      <button class="btn-refresh" onclick="AdminPanel.refresh()" title="Yangilash">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+      <div class="header-user">
+        <div class="user-avatar admin-avatar"><i class="fas fa-user-shield"></i></div>
+        <div class="user-info">
+          <span class="user-name">Administrator</span>
+          <span class="user-role">Super Admin</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Area -->
+  <div class="content-area">
+
+    <!-- ====== DASHBOARD SECTION ====== -->
+    <section id="section-dashboard" class="content-section active">
+
+      <!-- Main Stats -->
+      <div class="stats-grid stats-grid-5">
+        <div class="stat-card stat-blue">
+          <div class="stat-icon"><i class="fas fa-users"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="adminStatRaislar">39</span>
+            <span class="stat-label">Jami Raislar</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-icon"><i class="fas fa-file-check"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="adminStatTotal">0</span>
+            <span class="stat-label">Jami Hisobotlar</span>
+          </div>
+        </div>
+        <div class="stat-card stat-gold">
+          <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="adminStatToday">0</span>
+            <span class="stat-label">Bugun Yuborilgan</span>
+          </div>
+        </div>
+        <div class="stat-card stat-purple">
+          <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="adminStatMonth">0</span>
+            <span class="stat-label">Bu Oy</span>
+          </div>
+        </div>
+        <div class="stat-card stat-red">
+          <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="adminStatMissing">0</span>
+            <span class="stat-label">Hisobot Bermagan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raislar Kartalar -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-id-card"></i> Raislar Holati
+            <span class="month-label" id="dashboardMonthLabel"></span>
+          </h3>
+          <div class="card-header-actions">
+            <input type="text" id="raisCardSearch" placeholder="Qidirish..."
+                   oninput="AdminPanel.filterRaisCards()" class="search-input search-input-sm">
+            <span class="badge-count" id="submittedCount">0/39</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="submissionProgress" style="width:0%"><span>0%</span></div>
+          </div>
+          <div id="raisCardsGrid" class="rais-cards-grid">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Anti-Reyting -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-bar" style="color:#E63946"></i> Anti-Reyting: Kam Hisobot Topshirganlar</h3>
+          <span class="card-subtitle" id="antiRatingMonth"></span>
+        </div>
+        <div class="card-body">
+          <div id="antiRatingTable" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- So'nggi Hisobotlar -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-clock"></i> So'nggi Hisobotlar</h3>
+          <a href="#" onclick="showAdminSection('reports')" class="link-more">Barchasini ko'rish <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="card-body">
+          <div id="adminRecentReports" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== ALL REPORTS SECTION ====== -->
+    <section id="section-reports" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-file-alt"></i> Barcha Hisobotlar</h3>
+          <button class="btn-export" onclick="AdminPanel.exportReports()">
+            <i class="fas fa-file-excel"></i> Excel'ga Eksport
+          </button>
+        </div>
+        <div class="card-body">
+          <!-- Filters -->
+          <div class="filters-row">
+            <div class="filter-item">
+              <label>Rais:</label>
+              <select id="filterRais" onchange="AdminPanel.filterReports()">
+                <option value="all">Barchasi</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>Oy:</label>
+              <select id="filterMonth" onchange="AdminPanel.filterReports()">
+                <option value="all">Barcha oylar</option>
+              </select>
+            </div>
+            <div class="filter-item">
+              <label>Dan:</label>
+              <input type="date" id="filterDateFrom" onchange="AdminPanel.filterReports()">
+            </div>
+            <div class="filter-item">
+              <label>Gacha:</label>
+              <input type="date" id="filterDateTo" onchange="AdminPanel.filterReports()">
+            </div>
+            <button class="btn-secondary btn-sm" onclick="AdminPanel.clearFilters()">
+              <i class="fas fa-times"></i> Tozalash
+            </button>
+          </div>
+
+          <div id="allReportsList" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== RAISLAR SECTION ====== -->
+    <section id="section-raislar" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-users"></i> Raislar Ro'yxati (39 ta)</h3>
+          <div class="search-wrap">
+            <input type="text" id="raisSearch" placeholder="Qidirish..."
+                   oninput="AdminPanel.searchRaislar()" class="search-input">
+            <i class="fas fa-search"></i>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="raislarTable" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== TASKS SECTION ====== -->
+    <section id="section-tasks" class="content-section">
+
+      <!-- Yangi topshiriq yaratish -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-plus-circle"></i> Yangi Topshiriq Yaratish</h3>
+          <button class="btn-toggle-form" onclick="AdminPanel.toggleTaskForm()">
+            <i class="fas fa-chevron-down" id="taskFormChevron"></i>
+          </button>
+        </div>
+        <div class="card-body" id="taskFormBody">
+          <form id="createTaskForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-heading"></i> Topshiriq Sarlavhasi</label>
+                <input type="text" id="taskTitle" placeholder="Topshiriq nomi" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-calendar-alt"></i> Muddat (deadline)</label>
+                <input type="date" id="taskDeadline">
+              </div>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-align-left"></i> Topshiriq Tavsifi</label>
+              <textarea id="taskDesc" rows="3" placeholder="Topshiriq tafsilotlarini kiriting..."></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-users"></i> Kimga Beriladi</label>
+                <div class="rais-multiselect" id="taskAssignWrap">
+                  <button type="button" class="rais-ms-trigger" id="taskAssignTrigger"
+                          onclick="AdminPanel.toggleAssignDropdown()">
+                    <i class="fas fa-users"></i>
+                    <span id="taskAssignLabel">Barcha raislar (39 ta)</span>
+                    <i class="fas fa-chevron-down" id="taskAssignChevron"></i>
+                  </button>
+                  <div class="rais-ms-dropdown" id="taskAssignDropdown">
+                    <div class="rais-ms-search-row">
+                      <i class="fas fa-search"></i>
+                      <input type="text" id="taskAssignSearch" placeholder="Ism yoki mahalla bo'yicha qidirish..."
+                             oninput="AdminPanel.filterAssignList()" autocomplete="off">
+                    </div>
+                    <div class="rais-ms-select-all">
+                      <label class="rais-ms-item rais-ms-all-item">
+                        <input type="checkbox" id="taskAssignAll" onchange="AdminPanel.onAssignAllChange(this)">
+                        <span class="rais-ms-check"></span>
+                        <span class="rais-ms-name"><strong>Barchasi (39 ta rais)</strong></span>
+                      </label>
+                    </div>
+                    <div class="rais-ms-list" id="taskAssignList">
+                      <!-- Filled by JS -->
+                    </div>
+                    <div class="rais-ms-footer">
+                      <span id="taskAssignCount" class="rais-ms-count">0 ta tanlangan</span>
+                      <button type="button" class="btn-sm btn-secondary" onclick="AdminPanel.clearAssign()">
+                        <i class="fas fa-times"></i> Tozalash
+                      </button>
+                      <button type="button" class="btn-sm btn-primary" onclick="AdminPanel.toggleAssignDropdown()">
+                        <i class="fas fa-check"></i> Tayyor
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-flag"></i> Muhimlik Darajasi</label>
+                <select id="taskPriority">
+                  <option value="normal">Oddiy</option>
+                  <option value="high">Muhim</option>
+                  <option value="urgent">Shoshilinch</option>
+                  <option value="low">Past</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group task-hokimiyat-check">
+              <label class="checkbox-label">
+                <input type="checkbox" id="taskIsHokimiyat">
+                <span class="checkbox-custom"></span>
+                <span>
+                  <i class="fas fa-map-marker-alt" style="color:#E63946"></i>
+                  <strong>Hokimiyat topshirig'i</strong> — raislar hisobot topshirganda <strong>geolokatsiya majburiy</strong>
+                </span>
+              </label>
+            </div>
+            <div id="taskCreateResult" style="display:none"></div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i> Topshiriqni Yuborish
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Topshiriqlar Ro'yxati -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-list-check"></i> Barcha Topshiriqlar</h3>
+          <div class="card-header-actions">
+            <select id="taskStatusFilter" onchange="AdminPanel.loadTasks()">
+              <option value="active">Faol</option>
+              <option value="all">Barchasi</option>
+              <option value="closed">Yopilgan</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="tasksList">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== ANALYTICS SECTION ====== -->
+    <section id="section-analytics" class="content-section">
+      <div class="analytics-header-row">
+        <div class="card" style="flex:1">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-line"></i> Kunlik Faollik (So'nggi 30 kun)</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="dailyChart" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-trophy"></i> Eng Faol Raislar (Top 10)</h3>
+          </div>
+          <canvas id="topRaisChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-chart-area"></i> Ko'rsatkichlar Dinamikasi</h3>
+          </div>
+          <canvas id="indicatorsChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Summary Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-table"></i> Oylik Xulosaviy Jadval</h3>
+          <select id="analyticMonth" onchange="AdminPanel.loadMonthlySummary()">
+            <option value="1">Yanvar</option><option value="2">Fevral</option>
+            <option value="3">Mart</option><option value="4">Aprel</option>
+            <option value="5">May</option><option value="6">Iyun</option>
+            <option value="7">Iyul</option><option value="8">Avgust</option>
+            <option value="9">Sentabr</option><option value="10">Oktabr</option>
+            <option value="11">Noyabr</option><option value="12">Dekabr</option>
+          </select>
+        </div>
+        <div class="card-body">
+          <div id="monthlySummaryTable" class="reports-table-wrap">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== SETTINGS SECTION ====== -->
+    <section id="section-settings" class="content-section">
+      <div class="settings-grid">
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-user-plus"></i> Rais Qo'shish / Tahrirlash</h3>
+          </div>
+          <div class="card-body">
+            <form id="addRaisForm">
+              <div class="form-group">
+                <label>To'liq Ism</label>
+                <input type="text" id="newRaisName" placeholder="Ism Familiya" required>
+              </div>
+              <div class="form-group">
+                <label>Mahalla Nomi</label>
+                <input type="text" id="newRaisMahalla" placeholder="Mahalla nomi" required>
+              </div>
+              <div class="form-group">
+                <label>Tuman</label>
+                <input type="text" id="newRaisDistrict" placeholder="Tuman nomi">
+              </div>
+              <div class="form-group">
+                <label>Telefon</label>
+                <input type="text" id="newRaisPhone" placeholder="+998 XX XXX XX XX">
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Login</label>
+                  <input type="text" id="newRaisLogin" placeholder="login" required>
+                </div>
+                <div class="form-group">
+                  <label>Parol</label>
+                  <input type="password" id="newRaisPass" placeholder="parol" required>
+                </div>
+              </div>
+              <div id="addRaisResult" class="alert-success" style="display:none"></div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Saqlash
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-server"></i> Backend API Ulanish</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label><i class="fas fa-link"></i> Backend URL</label>
+              <input type="url" id="settingsApiUrl" placeholder="http://localhost:3001">
+              <small>Node.js/Express backend server manzili (masalan: https://your-app.onrender.com)</small>
+            </div>
+            <div id="settingsResult" class="alert-success" style="display:none"></div>
+            <div class="settings-actions">
+              <button class="btn-secondary" onclick="AdminPanel.testConnection()">
+                <i class="fas fa-plug"></i> Ulanishni Tekshirish
+              </button>
+              <button class="btn-primary" onclick="AdminPanel.saveSettings()">
+                <i class="fas fa-save"></i> Saqlash
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- .content-area -->
+</div><!-- .main-content -->
+
+<!-- Rais Detail Modal -->
+<div class="modal-overlay" id="raisDetailModal" style="display:none" onclick="closeRaisModal(event)">
+  <div class="modal-box modal-box-wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h3 id="raisDetailName">Rais</h3>
+        <p id="raisDetailMahalla" style="font-size:0.85rem;color:#64748b;margin:2px 0 0"></p>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('raisDetailModal').style.display='none'">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Filtr -->
+      <div class="rais-detail-filters">
+        <div class="filter-item">
+          <label>Sanadan:</label>
+          <input type="date" id="raisDetailDateFrom" onchange="AdminPanel.filterRaisDetailReports()">
+        </div>
+        <div class="filter-item">
+          <label>Sanagacha:</label>
+          <input type="date" id="raisDetailDateTo" onchange="AdminPanel.filterRaisDetailReports()">
+        </div>
+        <button class="btn-secondary btn-sm" onclick="AdminPanel.clearRaisDetailFilter()">
+          <i class="fas fa-times"></i> Tozalash
+        </button>
+        <span id="raisDetailCount" class="badge-count" style="margin-left:auto"></span>
+      </div>
+      <div id="raisDetailReportsList" class="reports-table-wrap" style="margin-top:12px">
+        <div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Report Detail Modal -->
+<div class="modal-overlay" id="reportModal" style="display:none" onclick="closeModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalTitle">Hisobot Tafsiloti</h3>
+      <button class="modal-close" onclick="document.getElementById('reportModal').style.display='none'">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<script src="js/config.js?v=7"></script>
+<script src="js/auth.js?v=7"></script>
+<script src="js/api.js?v=7"></script>
+<script src="js/admin.js?v=7"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+</script>
+</body>
+</html>

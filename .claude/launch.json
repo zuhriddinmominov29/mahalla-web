@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Mahalla Web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "3030"],
+      "port": 3030
+    },
+    {
+      "name": "Mahalla Backend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["backend/server.js"],
+      "port": 3001
+    }
+  ]
+}
