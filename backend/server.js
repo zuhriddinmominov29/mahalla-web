@@ -16,13 +16,16 @@ const ImageKit   = require('imagekit');
 const app = express();
 
 // ============================================================
-// IMAGEKIT SOZLASH
+// IMAGEKIT SOZLASH (optional — kalitlar bo'lmasa ham server ishlaydi)
 // ============================================================
-const imagekit = new ImageKit({
-  publicKey:  process.env.IMAGEKIT_PUBLIC_KEY  || '',
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-});
+let imagekit = null;
+if (process.env.IMAGEKIT_PUBLIC_KEY && process.env.IMAGEKIT_PRIVATE_KEY && process.env.IMAGEKIT_URL_ENDPOINT) {
+  imagekit = new ImageKit({
+    publicKey:   process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey:  process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+  });
+}
 
 // ============================================================
 // WEB PUSH (VAPID) SOZLASH
@@ -259,8 +262,8 @@ app.post('/api/upload', auth, upload.array('photos', 3), async (req, res) => {
       return res.json({ success: false, message: "Rasm tanlanmagan" });
     }
 
-    if (!process.env.IMAGEKIT_PRIVATE_KEY) {
-      return res.json({ success: false, message: 'ImageKit sozlanmagan' });
+    if (!imagekit) {
+      return res.json({ success: false, message: 'Rasm yuklash hozircha sozlanmagan' });
     }
 
     const urls = await Promise.all(req.files.map((file, i) => {

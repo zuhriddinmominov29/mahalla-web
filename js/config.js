@@ -9,7 +9,7 @@ const CONFIG = {
   // Local ishlab chiqishda: 'http://localhost:3001'
   // Produksiyada: 'https://your-backend.onrender.com'  yoki shu kabi
   // =====================================================
-  API_URL: localStorage.getItem('mahalla_api_url') || 'http://localhost:3001',
+  API_URL: localStorage.getItem('mahalla_api_url') || 'https://mahalla-web.onrender.com',
 
   // Sessiya muddati (soat)
   SESSION_HOURS: 8,
