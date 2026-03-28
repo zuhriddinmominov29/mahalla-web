@@ -1,39 +1,33 @@
-[build]
-  publish = "."
+# ═══════════════════════════════════════════════════════════
+# mahallics.uz — Netlify Deploy Konfiguratsiyasi
+# Yangi: React (Vite) app → mahalla-nazorat/frontend
+# ═══════════════════════════════════════════════════════════
 
+[build]
+  base    = "mahalla-nazorat/frontend"
+  command = "npm install && npm run build"
+  publish = "mahalla-nazorat/frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# ─── SPA: barcha yo'llar → index.html ───────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# ─── Security Headers ────────────────────────────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
+    X-Frame-Options        = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(self)"
 
+# ─── Static assets uzoq cache ────────────────────────────────────
 [[headers]]
-  for = "/admin.html"
+  for = "/assets/*"
   [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/rais.html"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[headers]]
-  for = "/hisobot.html"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
-
-[[redirects]]
-  from = "/admin"
-  to = "/admin.html"
-  status = 200
-
-[[redirects]]
-  from = "/rais"
-  to = "/rais.html"
-  status = 200
-
-[[redirects]]
-  from = "/hisobot"
-  to = "/hisobot.html"
-  status = 200
+    Cache-Control = "public, max-age=31536000, immutable"
