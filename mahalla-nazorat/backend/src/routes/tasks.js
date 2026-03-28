@@ -80,7 +80,6 @@ router.post('/', authenticate, authorize(ROLES.HOKIM, ROLES.SUPER_ADMIN),
   [
     body('title').trim().notEmpty().withMessage('Sarlavha kiritilishi shart'),
     body('type').isIn(['PERMANENT', 'ONE_TIME']).withMessage("Noto'g'ri tur"),
-    body('categoryId').notEmpty().withMessage('Kategoriya tanlanishi shart'),
     body('deadline').if(body('type').equals('PERMANENT')).notEmpty().withMessage('Doimiy topshiriqda muddat majburiy'),
   ],
   async (req, res) => {
@@ -94,8 +93,8 @@ router.post('/', authenticate, authorize(ROLES.HOKIM, ROLES.SUPER_ADMIN),
         data: {
           title, description, type,
           deadline: deadline ? new Date(deadline) : null,
-          priority: priority || 'MEDIUM',
-          categoryId,
+          priority: 'MEDIUM',
+          categoryId: categoryId || null,
           assignedToId: assignedToId || null,
           createdById: req.user.id,
           district, mahalla, deputyField,

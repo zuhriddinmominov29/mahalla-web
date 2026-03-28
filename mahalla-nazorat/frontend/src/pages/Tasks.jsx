@@ -36,17 +36,41 @@ const TaskCard = ({ task, onClick }) => {
   );
 };
 
-const TaskFormModal = ({ onClose, onSuccess, categories, users }) => {
-  const [form, setForm] = useState({ title:'', description:'', type:'ONE_TIME', priority:'MEDIUM', categoryId:'', deadline:'', assignedToId:'', district:'', mahalla:'', deputyField:'' });
+const BOYSUN_MAHALLALAR = [
+  'Avlod MFY','Arik usti MFY','Bibishirin MFY','Bogibolo MFY','Boshrabot MFY',
+  'Gaza MFY','Darband MFY','Daxnaijom MFY','Dashtigoz MFY','Dexibola MFY',
+  'Duoba MFY','Inkabod MFY','Kizilnavr MFY','Kosiblar MFY','Kulqamish MFY',
+  'Kuchqaq MFY','Munchok MFY','Mustaqillik MFY','Obi MFY','Pasurxi MFY',
+  'Poygaboshi MFY','Pulxokim MFY','Sayrob MFY','Temir Darvoza MFY','Tilloqamar MFY',
+  'Togchi MFY','Tuda MFY','Tuzbozor MFY','Urmonchi MFY','Urta Machay MFY',
+  'Xujabulgon MFY','Xujaidod MFY','Xunarmandlar MFY','Chilonzor MFY','Chorchinor MFY',
+  'Shirinobod MFY','Shifobulоq MFY','Shursoy MFY','Yuqori Machay MFY',
+];
+
+const TaskFormModal = ({ onClose, onSuccess }) => {
+  const [form, setForm] = useState({ title:'', description:'', type:'ONE_TIME', deadline:'' });
+  const [selectedMahallalar, setSelectedMahallalar] = useState([]);
   const [loading, setLoading] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  const toggleMahalla = (m) => setSelectedMahallalar(p => p.includes(m) ? p.filter(x => x !== m) : [...p, m]);
+  const toggleAll = () => setSelectedMahallalar(p => p.length === BOYSUN_MAHALLALAR.length ? [] : [...BOYSUN_MAHALLALAR]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.title || !form.categoryId) return toast.error('Sarlavha va kategoriya kiritilishi shart!');
+    if (!form.title) return toast.error('Sarlavha kiritilishi shart!');
     if (form.type === 'PERMANENT' && !form.deadline) return toast.error('Doimiy topshiriqda muddat majburiy!');
+    if (selectedMahallalar.length === 0) return toast.error('Kamida 1 ta mahalla tanlang!');
     setLoading(true);
-    try { await tasksAPI.create(form); toast.success('Topshiriq yaratildi! ✅'); onSuccess(); }
+    try {
+      await Promise.all(
+        selectedMahallalar.map(mahalla =>
+          tasksAPI.create({ ...form, mahalla, district: 'Boysun', deadline: form.deadline || null })
+        )
+      );
+      toast.success(`${selectedMahallalar.length} ta mahallaga topshiriq yuborildi! ✅`);
+      onSuccess();
+    }
     catch (err) { toast.error(err.response?.data?.errors?.[0]?.msg || 'Xato'); }
     finally { setLoading(false); }
   };
@@ -61,55 +85,44 @@ const TaskFormModal = ({ onClose, onSuccess, categories, users }) => {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div><label className="label">📌 Sarlavha *</label><input className="input" value={form.title} onChange={e => set('title', e.target.value)} required /></div>
           <div><label className="label">📝 Tavsif</label><textarea className="input resize-none" rows={3} value={form.description} onChange={e => set('description', e.target.value)} /></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">🏷️ Tur *</label>
-              <select className="input" value={form.type} onChange={e => set('type', e.target.value)}>
-                <option value="ONE_TIME">Bir martalik</option>
-                <option value="PERMANENT">Doimiy</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">⚡ Muhimlik</label>
-              <select className="input" value={form.priority} onChange={e => set('priority', e.target.value)}>
-                <option value="LOW">Past</option><option value="MEDIUM">O'rta</option><option value="HIGH">Yuqori</option><option value="URGENT">Shoshilinch</option>
-              </select>
-            </div>
+          <div>
+            <label className="label">🏷️ Tur *</label>
+            <select className="input" value={form.type} onChange={e => set('type', e.target.value)}>
+              <option value="ONE_TIME">Bir martalik</option>
+              <option value="PERMANENT">Doimiy</option>
+            </select>
           </div>
           {form.type === 'PERMANENT' && (
             <div><label className="label">📅 Muddat * <span className="text-red-500 font-normal">(Doimiy uchun)</span></label>
               <input type="date" className="input" value={form.deadline} min={new Date().toISOString().split('T')[0]} onChange={e => set('deadline', e.target.value)} required />
             </div>
           )}
+
+          {/* Mahallalar checkboxlari */}
           <div>
-            <label className="label">📂 Kategoriya *</label>
-            <select className="input" value={form.categoryId} onChange={e => set('categoryId', e.target.value)} required>
-              <option value="">-- Tanlang --</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label">👔 O'rinbosar soha</label>
-            <select className="input" value={form.deputyField} onChange={e => set('deputyField', e.target.value)}>
-              <option value="">-- Tanlang --</option>
-              {["Ijtimoiy","Iqtisodiy","Kommunal","Ta'lim va sog'liqni saqlash"].map(f => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="label">📍 Tuman</label><input className="input" value={form.district} onChange={e => set('district', e.target.value)} placeholder="Toshkent" /></div>
-            <div><label className="label">🏘️ Mahalla</label><input className="input" value={form.mahalla} onChange={e => set('mahalla', e.target.value)} placeholder="Yunusobod-1" /></div>
-          </div>
-          {users.length > 0 && (
-            <div><label className="label">👤 Tayinlansin</label>
-              <select className="input" value={form.assignedToId} onChange={e => set('assignedToId', e.target.value)}>
-                <option value="">-- Ixtiyoriy --</option>
-                {users.map(u => <option key={u.id} value={u.id}>{u.name} – {u.mahalla || u.role}</option>)}
-              </select>
+            <div className="flex items-center justify-between mb-2">
+              <label className="label mb-0">🏘️ Mahallalar * <span className="text-blue-500 font-normal">({selectedMahallalar.length} tanlandi)</span></label>
+              <button type="button" onClick={toggleAll}
+                className="text-xs px-2 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 font-medium">
+                {selectedMahallalar.length === BOYSUN_MAHALLALAR.length ? '❌ Barchasini bekor' : '✅ Barchasini tanlash'}
+              </button>
             </div>
-          )}
+            <div className="border border-gray-200 rounded-xl p-3 max-h-52 overflow-y-auto grid grid-cols-1 gap-1">
+              {BOYSUN_MAHALLALAR.map(m => (
+                <label key={m} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded-lg">
+                  <input type="checkbox" checked={selectedMahallalar.includes(m)} onChange={() => toggleMahalla(m)}
+                    className="w-4 h-4 rounded accent-blue-600" />
+                  <span className="text-sm text-gray-700">{m}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center">Bekor</button>
-            <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">{loading ? '⏳' : '✅'} Saqlash</button>
+            <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center">
+              {loading ? '⏳ Yuborilmoqda...' : `✅ Saqlash (${selectedMahallalar.length})`}
+            </button>
           </div>
         </form>
       </div>
@@ -189,7 +202,7 @@ const Tasks = () => {
         </div>
       )}
 
-      {showForm && <TaskFormModal categories={categories} users={users} onClose={() => setShowForm(false)} onSuccess={() => { setShowForm(false); loadTasks(); }} />}
+      {showForm && <TaskFormModal onClose={() => setShowForm(false)} onSuccess={() => { setShowForm(false); loadTasks(); }} />}
     </div>
   );
 };
