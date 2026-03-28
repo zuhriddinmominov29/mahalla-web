@@ -21,6 +21,7 @@ const TaskDetail = () => {
   const [reviewNote, setReviewNote] = useState('');
   const [reviewing, setReviewing] = useState(false);
   const [lightbox, setLightbox] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { loadTask(); }, [id]);
 
@@ -29,6 +30,16 @@ const TaskDetail = () => {
     try { const { data } = await tasksAPI.getById(id); setTask(data); }
     catch { toast.error('Topshiriq topilmadi'); navigate('/tasks'); }
     finally { setLoading(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm("Topshiriqni o'chirishni tasdiqlaysizmi?")) return;
+    setDeleting(true);
+    try {
+      await tasksAPI.delete(id);
+      toast.success("Topshiriq o'chirildi");
+      navigate('/tasks');
+    } catch { toast.error('Xato'); setDeleting(false); }
   };
 
   const handleReview = async (reportId, status) => {
@@ -62,6 +73,12 @@ const TaskDetail = () => {
             <h1 className="text-xl font-bold text-gray-900">{task.title}</h1>
             {task.description && <p className="text-gray-600 text-sm mt-2">{task.description}</p>}
           </div>
+          {(isHokim() || isSuperAdmin()) && (
+            <button onClick={handleDelete} disabled={deleting}
+              className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all">
+              {deleting ? '⏳' : '🗑️'} O'chirish
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-gray-100 pt-4">
