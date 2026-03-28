@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 const DEMO = [
   { label: 'Super Admin', email: 'admin@mahalla.uz',  password: 'Admin@123456', c: 'purple' },
   { label: 'Hokim',       email: 'hokim@boysun.uz',   password: 'Hokim@2026',   c: 'blue' },
-  { label: 'Rais',        email: 'rais1@mahalla.uz',  password: 'Rais@1',       c: 'green' },
+  { label: 'Rais',        email: 'rais1@boysun.uz',   password: 'Rais@1',       c: 'green' },
 ];
 
 const Login = () => {
