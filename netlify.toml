@@ -6,7 +6,7 @@
 [build]
   base    = "mahalla-nazorat/frontend"
   command = "npm install && npm run build"
-  publish = "mahalla-nazorat/frontend/dist"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
