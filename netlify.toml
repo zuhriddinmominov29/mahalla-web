@@ -11,6 +11,20 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# ─── API Proxy → Render backend ─────────────────────────────────
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://mahallics-api.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+# ─── Socket.io Proxy ─────────────────────────────────────────────
+[[redirects]]
+  from   = "/socket.io/*"
+  to     = "https://mahallics-api.onrender.com/socket.io/:splat"
+  status = 200
+  force  = true
+
 # ─── SPA: barcha yo'llar → index.html ───────────────────────────
 [[redirects]]
   from   = "/*"
