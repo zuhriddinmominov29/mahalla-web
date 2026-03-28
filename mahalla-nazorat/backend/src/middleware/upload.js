@@ -1,7 +1,7 @@
 const multer = require('multer');
 const sharp = require('sharp');
-const cloudinary = require('../config/cloudinary');
-const streamifier = require('streamifier');
+const supabase = require('../config/supabaseStorage');
+const { v4: uuidv4 } = require('uuid');
 
 // ─── Multer memory storage ────────────────────────────────────────────────────
 const upload = multer({
@@ -21,15 +21,29 @@ const compressImage = async (buffer) =>
     .jpeg({ quality: 75, progressive: true, mozjpeg: true })
     .toBuffer();
 
-// ─── Cloudinary ga yuklash ────────────────────────────────────────────────────
-const uploadToCloudinary = (buffer, folder = 'mahalla-reports') =>
-  new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: 'image', transformation: [{ quality: 'auto:good' }, { fetch_format: 'auto' }] },
-      (err, result) => (err ? reject(err) : resolve(result))
-    );
-    streamifier.createReadStream(buffer).pipe(stream);
-  });
+// ─── Supabase Storage ga yuklash ──────────────────────────────────────────────
+const uploadToSupabase = async (buffer, originalName) => {
+  const fileName = `reports/${uuidv4()}.jpg`;
+
+  const { data, error } = await supabase.storage
+    .from('mahalla-images')
+    .upload(fileName, buffer, {
+      contentType: 'image/jpeg',
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (error) throw new Error(`Supabase upload xatosi: ${error.message}`);
+
+  const { data: publicUrlData } = supabase.storage
+    .from('mahalla-images')
+    .getPublicUrl(fileName);
+
+  return {
+    url: publicUrlData.publicUrl,
+    publicId: fileName, // delete uchun saqlaymiz
+  };
+};
 
 // ─── Rasmlarni kompressiya + yuklash ─────────────────────────────────────────
 const processAndUploadImages = async (files) => {
@@ -38,13 +52,17 @@ const processAndUploadImages = async (files) => {
   return Promise.all(
     limited.map(async (file) => {
       const compressed = await compressImage(file.buffer);
-      const result = await uploadToCloudinary(compressed);
-      return { url: result.secure_url, publicId: result.public_id };
+      return uploadToSupabase(compressed, file.originalname);
     })
   );
 };
 
-const deleteFromCloudinary = async (publicId) =>
-  cloudinary.uploader.destroy(publicId);
+// ─── Supabase dan rasm o'chirish ──────────────────────────────────────────────
+const deleteFromStorage = async (publicId) => {
+  const { error } = await supabase.storage
+    .from('mahalla-images')
+    .remove([publicId]);
+  if (error) console.error('Rasm o\'chirish xatosi:', error.message);
+};
 
-module.exports = { upload, processAndUploadImages, deleteFromCloudinary };
+module.exports = { upload, processAndUploadImages, deleteFromStorage };
