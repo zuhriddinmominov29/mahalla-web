@@ -15,18 +15,18 @@ async function main() {
 
   // Hokim
   await prisma.user.upsert({
-    where: { email: 'hokim@toshkent.uz' },
+    where: { email: 'hokim@boysun.uz' },
     update: {},
-    create: { name: 'Toshkent Hokimi', email: 'hokim@toshkent.uz', password: await bcrypt.hash('Hokim@2024', 12), role: 'HOKIM', district: 'Toshkent' },
+    create: { name: 'Boxadir Shukurov Shoturayevich', email: 'hokim@boysun.uz', password: await bcrypt.hash('Hokim@2026', 12), role: 'HOKIM', district: 'Boysun' },
   });
 
   // Deputilar
   const fields = ['Ijtimoiy', 'Iqtisodiy', 'Kommunal', "Ta'lim va sog'liqni saqlash"];
   for (let i = 0; i < fields.length; i++) {
     await prisma.user.upsert({
-      where: { email: `deputy${i+1}@toshkent.uz` },
+      where: { email: `deputy${i+1}@boysun.uz` },
       update: {},
-      create: { name: `${fields[i]} bo'yicha O'rinbosar`, email: `deputy${i+1}@toshkent.uz`, password: await bcrypt.hash(`Deputy@${i+1}`, 12), role: 'DEPUTY', district: 'Toshkent', deputyField: fields[i] },
+      create: { name: `${fields[i]} bo'yicha O'rinbosar`, email: `deputy${i+1}@boysun.uz`, password: await bcrypt.hash(`Deputy@${i+1}`, 12), role: 'DEPUTY', district: 'Boysun', deputyField: fields[i] },
     });
   }
 
@@ -64,8 +64,8 @@ async function main() {
   console.log('✅ Seed muvaffaqiyatli!\n');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('Super Admin: admin@mahalla.uz     / Admin@123456');
-  console.log('Hokim:       hokim@toshkent.uz    / Hokim@2024');
-  console.log("O'rinbosar:  deputy1@toshkent.uz  / Deputy@1");
+  console.log('Hokim:       hokim@boysun.uz      / Hokim@2026');
+  console.log("O'rinbosar:  deputy1@boysun.uz    / Deputy@1");
   console.log('Rais:        rais1@mahalla.uz     / Rais@1');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }

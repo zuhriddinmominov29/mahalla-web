@@ -4,10 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const DEMO = [
-  { label: 'Super Admin', email: 'admin@mahalla.uz',    password: 'Admin@123456', c: 'purple' },
-  { label: 'Hokim',       email: 'hokim@toshkent.uz',   password: 'Hokim@2024',   c: 'blue' },
-  { label: "O'rinbosar",  email: 'deputy1@toshkent.uz', password: 'Deputy@1',     c: 'indigo' },
-  { label: 'Rais',        email: 'rais1@mahalla.uz',    password: 'Rais@1',       c: 'green' },
+  { label: 'Super Admin', email: 'admin@mahalla.uz',  password: 'Admin@123456', c: 'purple' },
+  { label: 'Hokim',       email: 'hokim@boysun.uz',   password: 'Hokim@2026',   c: 'blue' },
+  { label: 'Rais',        email: 'rais1@mahalla.uz',  password: 'Rais@1',       c: 'green' },
 ];
 
 const Login = () => {
@@ -79,7 +78,7 @@ const Login = () => {
             </div>
           </div>
         </div>
-        <p className="text-center text-blue-300/40 text-xs mt-6">© 2024 Mahalla Nazorat • O'zbekiston 🇺🇿</p>
+        <p className="text-center text-blue-300/40 text-xs mt-6">© 2026 Mahalla Nazorat • O'zbekiston 🇺🇿</p>
       </div>
     </div>
   );
