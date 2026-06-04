@@ -114,6 +114,24 @@ const taskSchema = new mongoose.Schema({
   createdBy:   { type: String, default: 'admin' },
 });
 
+// Favqulodda vaziyat
+const emergencySchema = new mongoose.Schema({
+  raisId:      { type: Number, required: true },
+  raisName:    { type: String, default: '' },
+  mahalla:     { type: String, default: '' },
+  district:    { type: String, default: '' },
+  types:       [{ type: String, enum: ['rain','wind','power_outage','flood','damage','fire','other'] }],
+  severity:    { type: String, enum: ['low','medium','high','critical'], default: 'medium' },
+  description: { type: String, default: '' },
+  casualties:  { type: Number, default: 0 },
+  photos:      [{ type: String }],
+  latitude:    { type: Number, default: null },
+  longitude:   { type: Number, default: null },
+  status:      { type: String, enum: ['active','resolved'], default: 'active' },
+  resolvedAt:  { type: String, default: null },
+  reportedAt:  { type: String, default: () => new Date().toISOString() },
+}, { timestamps: true });
+
 // Push notification subscriptions
 const pushSubSchema = new mongoose.Schema({
   raisId:       { type: Number, required: true, unique: true },
@@ -121,10 +139,11 @@ const pushSubSchema = new mongoose.Schema({
   updatedAt:    { type: Date, default: Date.now },
 });
 
-const User     = mongoose.model('User',        userSchema);
-const Report   = mongoose.model('Report',      reportSchema);
-const Task     = mongoose.model('Task',        taskSchema);
-const PushSub  = mongoose.model('PushSub',     pushSubSchema);
+const User       = mongoose.model('User',           userSchema);
+const Report     = mongoose.model('Report',         reportSchema);
+const Task       = mongoose.model('Task',           taskSchema);
+const Emergency  = mongoose.model('Emergency',      emergencySchema);
+const PushSub    = mongoose.model('PushSub',        pushSubSchema);
 
 // ============================================================
 // MULTER — xotiraga yuklash (Cloudinary ga jo'natish uchun)
@@ -707,6 +726,132 @@ app.post('/api/setup', async (req, res) => {
 
     await User.insertMany(users);
     res.json({ success: true, message: `${users.length} ta foydalanuvchi yuklandi!` });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// ============================================================
+// ===== FAVQULODDA VAZIYAT =====
+// ============================================================
+
+// Rais: favqulodda vaziyat yuborish
+app.post('/api/emergency', auth, upload.array('photos', 3), async (req, res) => {
+  try {
+    const user = req.user;
+    const data = req.body;
+    let types = data.types;
+    if (typeof types === 'string') types = [types];
+    if (!Array.isArray(types) || types.length === 0) {
+      return res.json({ success: false, message: 'Vaziyat turi tanlanmadi' });
+    }
+
+    let photoUrls = [];
+    if (data.photos && Array.isArray(data.photos)) {
+      photoUrls = data.photos.slice(0, 3);
+    }
+
+    if (req.files && req.files.length > 0 && imagekit) {
+      const uploaded = await Promise.all(req.files.map((file, i) => {
+        const fileName = `emergency_${Date.now()}_${i}${path.extname(file.originalname) || '.jpg'}`;
+        return imagekit.upload({ file: file.buffer, fileName, folder: '/mahalla-emergency', useUniqueFileName: true })
+          .then(r => r.url);
+      }));
+      photoUrls = [...photoUrls, ...uploaded].slice(0, 3);
+    }
+
+    const doc = new Emergency({
+      raisId:      user.id,
+      raisName:    user.fullName,
+      mahalla:     user.mahalla,
+      district:    user.district || 'Boysun',
+      types,
+      severity:    data.severity   || 'medium',
+      description: data.description || '',
+      casualties:  parseInt(data.casualties) || 0,
+      photos:      photoUrls,
+      latitude:    data.latitude  ? parseFloat(data.latitude)  : null,
+      longitude:   data.longitude ? parseFloat(data.longitude) : null,
+      status:      'active',
+      reportedAt:  new Date().toISOString(),
+    });
+    await doc.save();
+    res.json({ success: true, id: doc._id.toString() });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// Rais: o'z favqulodda vaziyatlari
+app.get('/api/emergency/my', auth, async (req, res) => {
+  try {
+    const list = await Emergency.find({ raisId: req.user.id }).sort({ reportedAt: -1 });
+    res.json({ success: true, data: list.map(d => ({ ...d.toObject(), id: d._id.toString() })) });
+  } catch { res.json({ success: true, data: [] }); }
+});
+
+// Admin: barcha favqulodda vaziyatlar
+app.get('/api/emergency', auth, adminOnly, async (req, res) => {
+  try {
+    const { status } = req.query;
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    const list = await Emergency.find(filter).sort({ reportedAt: -1 });
+    res.json({ success: true, data: list.map(d => ({ ...d.toObject(), id: d._id.toString() })) });
+  } catch { res.json({ success: true, data: [] }); }
+});
+
+// Admin: statistika
+app.get('/api/emergency/stats', auth, adminOnly, async (req, res) => {
+  try {
+    const all      = await Emergency.find({});
+    const active   = all.filter(e => e.status === 'active');
+    const resolved = all.filter(e => e.status === 'resolved');
+
+    const byType = {};
+    const TYPE_LABELS = { rain:'Yomg\'ir', wind:'Shamol', power_outage:'Elektr o\'chgan', flood:'Suv toshqini', damage:'Zarar/Talofat', fire:'Yong\'in', other:'Boshqa' };
+    all.forEach(e => {
+      (e.types || []).forEach(t => { byType[t] = (byType[t] || 0) + 1; });
+    });
+
+    const bySeverity = { low:0, medium:0, high:0, critical:0 };
+    active.forEach(e => { if (bySeverity[e.severity] !== undefined) bySeverity[e.severity]++; });
+
+    const affectedMahallas = [...new Set(active.map(e => e.mahalla))];
+
+    res.json({
+      total: all.length,
+      active: active.length,
+      resolved: resolved.length,
+      byType,
+      bySeverity,
+      affectedMahallas,
+      affectedCount: affectedMahallas.length,
+      typeLabels: TYPE_LABELS,
+    });
+  } catch (err) {
+    res.json({ total:0, active:0, resolved:0, byType:{}, bySeverity:{}, affectedMahallas:[], affectedCount:0 });
+  }
+});
+
+// Admin: hal qilindi deb belgilash
+app.patch('/api/emergency/:id/resolve', auth, adminOnly, async (req, res) => {
+  try {
+    await Emergency.findByIdAndUpdate(req.params.id, {
+      status: 'resolved',
+      resolvedAt: new Date().toISOString(),
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// Admin: o'chirish
+app.delete('/api/emergency/:id', auth, adminOnly, async (req, res) => {
+  try {
+    await Emergency.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }

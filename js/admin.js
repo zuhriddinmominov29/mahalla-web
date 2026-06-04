@@ -32,12 +32,13 @@ function showAdminSection(name) {
   if (navItem) navItem.classList.add('active');
 
   const titles = {
-    dashboard: { h: 'Dashboard',          p: 'Umumiy holat ko\'rinishi' },
-    reports:   { h: 'Barcha Hisobotlar',   p: 'Barcha raislar hisobotlari' },
-    raislar:   { h: 'Raislar Ro\'yxati',   p: '39 mahalla raisi ma\'lumotlari' },
-    tasks:     { h: 'Topshiriqlar',        p: 'Raislar uchun topshiriqlar boshqaruvi' },
-    analytics: { h: 'Tahlil',             p: 'Statistika va grafiklari' },
-    settings:  { h: 'Sozlamalar',          p: 'Tizim sozlamalari' },
+    dashboard: { h: 'Dashboard',            p: 'Umumiy holat ko\'rinishi' },
+    reports:   { h: 'Barcha Hisobotlar',     p: 'Barcha raislar hisobotlari' },
+    raislar:   { h: 'Raislar Ro\'yxati',     p: '39 mahalla raisi ma\'lumotlari' },
+    tasks:     { h: 'Topshiriqlar',          p: 'Raislar uchun topshiriqlar boshqaruvi' },
+    analytics: { h: 'Tahlil',               p: 'Statistika va grafiklari' },
+    emergency: { h: 'Favqulodda Vaziyatlar', p: '39 mahalla favqulodda holat monitoringi' },
+    settings:  { h: 'Sozlamalar',            p: 'Tizim sozlamalari' },
   };
   const t = titles[name] || { h: name, p: '' };
   document.getElementById('pageTitle').textContent    = t.h;
@@ -48,6 +49,7 @@ function showAdminSection(name) {
   if (name === 'raislar')   AdminPanel.loadRaislar();
   if (name === 'tasks')     AdminPanel.loadTasks();
   if (name === 'analytics') AdminPanel.loadAnalytics();
+  if (name === 'emergency') AdminEmergency.load();
 
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
@@ -1040,6 +1042,219 @@ document.getElementById('createTaskForm')?.addEventListener('submit', async func
     setTimeout(() => el.style.display = 'none', 3000);
   }
 });
+
+// =====================================================
+// FAVQULODDA VAZIYAT — ADMIN DASHBOARD
+// =====================================================
+const MAHALLALAR_39 = [
+  'Avlod','Arik usti','Bibishirin','Bogibolo','Boshrabot','Gaza','Darband','Daxnaijom',
+  'Dashtigoz','Dexibola','Duoba','Inkabod','Kizilnavr','Kosiblar','Kulkamish','Kuchkak',
+  'Munchok','Mustakillik','Obi','Pasurxi','Poygaboshi','Pulxokim','Sayrob','Temir Darvoza',
+  'Tillokamr',"Tog'chi",'Tuda','Tuzbozor','Urmonchi',"O'rta Machay","Xo'jabulgon",
+  "Xo'jaidod",'Hunarmandlar','Chilonzor','Chorchinor','Shirinobod','Shifobulok','Shursoy',
+  'Yukori Machay'
+];
+
+const TYPE_ICONS = { rain:'fa-cloud-rain', wind:'fa-wind', power_outage:'fa-bolt', flood:'fa-water', damage:'fa-house-damage', fire:'fa-fire', other:'fa-question-circle' };
+const TYPE_LBL   = { rain:"Yomg'ir", wind:'Shamol/Bo\'ron', power_outage:"Elektr o'chgan", flood:'Suv toshqini', damage:'Zarar/Talofat', fire:"Yong'in", other:'Boshqa' };
+const SEV_LBL    = { low:'Past', medium:"O'rta", high:'Yuqori', critical:'Kritik' };
+const SEV_COLOR  = { low:'#2E7D32', medium:'#C9A227', high:'#E65100', critical:'#B71C1C' };
+
+let _emAllList = [];
+
+const AdminEmergency = {
+  async load() {
+    await Promise.all([this.loadStats(), this.loadList()]);
+    await this.loadBadge();
+  },
+
+  async loadStats() {
+    try {
+      const stats = await API.request('/emergency/stats');
+      document.getElementById('emStatActive').textContent    = stats.active    || 0;
+      document.getElementById('emStatResolved').textContent  = stats.resolved  || 0;
+      document.getElementById('emStatMahallas').textContent  = stats.affectedCount || 0;
+      document.getElementById('emStatTotal').textContent     = stats.total     || 0;
+
+      // Vaziyat turlari
+      const typeEl = document.getElementById('emTypeStats');
+      const byType = stats.byType || {};
+      const typeKeys = Object.keys(byType).sort((a,b) => byType[b] - byType[a]);
+      const maxVal = typeKeys.length ? byType[typeKeys[0]] : 1;
+      typeEl.innerHTML = typeKeys.length === 0
+        ? '<div class="empty-state"><i class="fas fa-check-circle" style="color:#2E7D32"></i><p>Hozircha xabar yo\'q</p></div>'
+        : typeKeys.map(t => `
+          <div class="em-stat-row">
+            <span class="em-stat-label"><i class="fas ${TYPE_ICONS[t]||'fa-exclamation'}"></i> ${TYPE_LBL[t]||t}</span>
+            <div class="em-stat-bar-wrap">
+              <div class="em-stat-bar" style="width:${Math.round((byType[t]/maxVal)*100)}%"></div>
+            </div>
+            <span class="em-stat-count">${byType[t]}</span>
+          </div>`).join('');
+
+      // Og'irlik darajasi
+      const sevEl  = document.getElementById('emSeverityStats');
+      const bySev  = stats.bySeverity || {};
+      const sevTotal = Object.values(bySev).reduce((a,b) => a+b, 0) || 1;
+      sevEl.innerHTML = ['low','medium','high','critical'].map(s => `
+        <div class="em-sev-row">
+          <span class="em-sev-dot" style="background:${SEV_COLOR[s]}"></span>
+          <span class="em-sev-label">${SEV_LBL[s]}</span>
+          <div class="em-stat-bar-wrap em-stat-bar-wrap-sm">
+            <div class="em-stat-bar" style="width:${Math.round(((bySev[s]||0)/sevTotal)*100)}%;background:${SEV_COLOR[s]}"></div>
+          </div>
+          <span class="em-stat-count">${bySev[s]||0}</span>
+        </div>`).join('');
+
+      // 39 mahalla holati gridi
+      this.renderMahallaGrid(stats.affectedMahallas || []);
+    } catch {
+      document.getElementById('emTypeStats').innerHTML = '<div class="empty-state"><p>Yuklab bo\'lmadi</p></div>';
+    }
+  },
+
+  renderMahallaGrid(affectedList) {
+    const grid = document.getElementById('emMahallaGrid');
+    if (!grid) return;
+    grid.innerHTML = MAHALLALAR_39.map(m => {
+      const affected = affectedList.some(a => a && a.toLowerCase().includes(m.toLowerCase().split(' ')[0]));
+      return `
+        <div class="em-mahalla-chip ${affected ? 'em-mahalla-alert' : 'em-mahalla-ok'}"
+             title="${m} MFY${affected ? ' — FAOL VAZIYAT' : ''}">
+          ${affected ? '<i class="fas fa-exclamation-triangle"></i>' : '<i class="fas fa-check-circle"></i>'}
+          <span>${m}</span>
+        </div>`;
+    }).join('');
+  },
+
+  async loadList() {
+    const el = document.getElementById('emReportsList');
+    if (!el) return;
+    el.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>';
+    try {
+      const statusFilter = document.getElementById('emFilterStatus')?.value || 'active';
+      const url = statusFilter === 'all' ? '/emergency' : `/emergency?status=${statusFilter}`;
+      const res = await API.request(url);
+      _emAllList = res.data || [];
+      this.renderList(_emAllList);
+    } catch {
+      el.innerHTML = '<div class="empty-state"><p>Yuklab bo\'lmadi</p></div>';
+    }
+  },
+
+  renderList(list) {
+    const el = document.getElementById('emReportsList');
+    if (!el) return;
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state"><i class="fas fa-check-double" style="color:#2E7D32"></i><p>Faol favqulodda vaziyat yo\'q</p></div>';
+      return;
+    }
+    el.innerHTML = list.map(e => `
+      <div class="em-list-item ${e.status==='resolved'?'em-list-resolved':'em-list-active'}">
+        <div class="em-list-header">
+          <div class="em-list-mahalla">
+            <i class="fas fa-map-marker-alt"></i> <strong>${escHtml(e.mahalla)}</strong>
+            <span style="color:#64748b;font-size:0.8rem;margin-left:6px">${escHtml(e.raisName)}</span>
+          </div>
+          <div class="em-list-badges">
+            <span class="em-severity-chip" style="background:${SEV_COLOR[e.severity]}20;color:${SEV_COLOR[e.severity]};border:1px solid ${SEV_COLOR[e.severity]}40">
+              ${SEV_LBL[e.severity]||e.severity}
+            </span>
+            ${e.status==='resolved'
+              ? '<span class="em-status-chip em-status-resolved"><i class="fas fa-check-circle"></i> Hal qilindi</span>'
+              : '<span class="em-status-chip em-status-active"><i class="fas fa-bell"></i> Faol</span>'}
+          </div>
+        </div>
+        <div class="em-types-row">
+          ${(e.types||[]).map(t => `<span class="em-type-chip"><i class="fas ${TYPE_ICONS[t]||'fa-exclamation'}"></i> ${TYPE_LBL[t]||t}</span>`).join('')}
+        </div>
+        <p class="em-desc">${escHtml(e.description)}</p>
+        ${e.casualties > 0 ? `<span class="em-casualties"><i class="fas fa-user-injured"></i> Jabrlanganlar: <strong>${e.casualties}</strong></span>` : ''}
+        ${e.photos?.length > 0 ? `<div class="em-photos-row">${e.photos.map(u=>`<img src="${escHtml(u)}" class="em-thumb" onclick="openEmModal('${escHtml(e.id)}')">`).join('')}</div>` : ''}
+        <div class="em-list-footer">
+          <span class="em-meta-time"><i class="fas fa-clock"></i> ${formatDateTime(e.reportedAt)}</span>
+          <div class="em-actions">
+            <button class="btn-sm btn-secondary" onclick="openEmModal('${escHtml(e.id)}')">
+              <i class="fas fa-eye"></i> Ko'rish
+            </button>
+            ${e.status !== 'resolved' ? `
+            <button class="btn-sm btn-success" onclick="AdminEmergency.resolve('${escHtml(e.id)}')">
+              <i class="fas fa-check"></i> Hal Qilindi
+            </button>` : ''}
+            <button class="btn-sm btn-danger-sm" onclick="AdminEmergency.delete('${escHtml(e.id)}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  },
+
+  filterList() {
+    this.loadList();
+  },
+
+  async resolve(id) {
+    if (!confirm('Bu vaziyat hal qilindimi?')) return;
+    await API.request(`/emergency/${id}/resolve`, 'PATCH');
+    this.load();
+  },
+
+  async delete(id) {
+    if (!confirm("Bu xabarni o'chirishni tasdiqlaysizmi?")) return;
+    await API.request(`/emergency/${id}`, 'DELETE');
+    this.load();
+  },
+
+  async loadBadge() {
+    try {
+      const stats = await API.request('/emergency/stats');
+      const badge = document.getElementById('emergencyAdminBadge');
+      if (!badge) return;
+      if (stats.active > 0) {
+        badge.textContent = stats.active;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    } catch {}
+  },
+};
+
+function openEmModal(id) {
+  const e = _emAllList.find(x => x.id === id);
+  if (!e) return;
+  const body = document.getElementById('emModalBody');
+  body.innerHTML = `
+    <div class="em-modal-content">
+      <div class="em-modal-row"><strong>Mahalla:</strong> ${escHtml(e.mahalla)} — ${escHtml(e.raisName)}</div>
+      <div class="em-modal-row"><strong>Vaqt:</strong> ${formatDateTime(e.reportedAt)}</div>
+      <div class="em-modal-row">
+        <strong>Vaziyat turlari:</strong>
+        ${(e.types||[]).map(t=>`<span class="em-type-chip"><i class="fas ${TYPE_ICONS[t]||'fa-exclamation'}"></i> ${TYPE_LBL[t]||t}</span>`).join(' ')}
+      </div>
+      <div class="em-modal-row">
+        <strong>Og'irlik:</strong>
+        <span style="color:${SEV_COLOR[e.severity]};font-weight:bold">${SEV_LBL[e.severity]||e.severity}</span>
+      </div>
+      ${e.casualties > 0 ? `<div class="em-modal-row"><strong>Jabrlanganlar:</strong> <span style="color:#B71C1C;font-weight:bold">${e.casualties} ta</span></div>` : ''}
+      <div class="em-modal-row"><strong>Tavsif:</strong><p style="margin-top:4px">${escHtml(e.description)}</p></div>
+      ${e.latitude ? `<div class="em-modal-row"><strong>Joylashuv:</strong> ${e.latitude.toFixed(5)}, ${e.longitude.toFixed(5)}</div>` : ''}
+      ${e.photos?.length ? `
+        <div class="em-modal-row"><strong>Rasmlar:</strong></div>
+        <div class="em-modal-photos">${e.photos.map(u=>`<a href="${escHtml(u)}" target="_blank"><img src="${escHtml(u)}" class="em-modal-img"></a>`).join('')}</div>` : ''}
+      <div class="em-modal-row" style="margin-top:16px">
+        ${e.status !== 'resolved' ? `<button class="btn-primary" onclick="AdminEmergency.resolve('${escHtml(e.id)}');document.getElementById('emModal').style.display='none'">
+          <i class="fas fa-check"></i> Hal Qilindi deb Belgilash</button>` : '<span style="color:#2E7D32"><i class="fas fa-check-circle"></i> Hal qilingan</span>'}
+      </div>
+    </div>`;
+  document.getElementById('emModal').style.display = 'flex';
+}
+
+function closeEmModal(event) {
+  if (event.target === event.currentTarget)
+    document.getElementById('emModal').style.display = 'none';
+}
 
 // =====================================================
 // XARITA YORDAMCHISI (Leaflet)

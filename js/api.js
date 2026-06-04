@@ -20,6 +20,19 @@ async function apiFetch(path, options = {}) {
 const API = {
 
   // ============================================================
+  // UMUMIY REQUEST
+  // ============================================================
+  async request(path, method = 'GET', body = null) {
+    try {
+      const opts = { method };
+      if (body) opts.body = JSON.stringify(body);
+      return await apiFetch(`/api${path}`, opts);
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  },
+
+  // ============================================================
   // RASM YUKLASH (Cloudinary)
   // ============================================================
   async uploadPhotos(files) {

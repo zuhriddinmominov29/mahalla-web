@@ -24,11 +24,12 @@ function showSection(name) {
   if (navItem) navItem.classList.add('active');
 
   const titles = {
-    dashboard: { h: 'Bosh Sahifa',          p: 'Xush kelibsiz' },
-    submit:    { h: 'Hisobot Yuklash',       p: 'Yangi hisobot yuborish' },
-    tasks:     { h: 'Topshiriqlar',          p: 'Sizga berilgan topshiriqlar' },
-    history:   { h: 'Mening Hisobotlarim',   p: 'Yuborilgan hisobotlar' },
-    profile:   { h: 'Profilim',             p: 'Shaxsiy ma\'lumotlar' },
+    dashboard: { h: 'Bosh Sahifa',           p: 'Xush kelibsiz' },
+    submit:    { h: 'Hisobot Yuklash',        p: 'Yangi hisobot yuborish' },
+    tasks:     { h: 'Topshiriqlar',           p: 'Sizga berilgan topshiriqlar' },
+    history:   { h: 'Mening Hisobotlarim',    p: 'Yuborilgan hisobotlar' },
+    emergency: { h: 'Favqulodda Vaziyat',     p: 'Hokim va adminga zudlik bilan xabar yuborish' },
+    profile:   { h: 'Profilim',              p: 'Shaxsiy ma\'lumotlar' },
   };
   const t = titles[name] || { h: name, p: '' };
   document.getElementById('pageTitle').textContent    = t.h;
@@ -38,6 +39,7 @@ function showSection(name) {
   if (name === 'tasks')     loadTasks();
   if (name === 'history')   loadHistory();
   if (name === 'profile')   loadProfile();
+  if (name === 'emergency') loadMyEmergencies();
 
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
@@ -740,6 +742,197 @@ async function submitTaskReport(e) {
   btn.disabled  = false;
   btn.innerHTML = '<i class="fas fa-paper-plane"></i> Yuborish';
 }
+
+// =====================================================
+// FAVQULODDA VAZIYAT
+// =====================================================
+let _emPhotos = [];
+
+function handleEmergencyPhotoSelect(input) {
+  Array.from(input.files).slice(0, 3 - _emPhotos.length).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { alert(`"${file.name}" juda katta (maks 5MB)`); return; }
+    _emPhotos.push(file);
+  });
+  renderEmPhotoPreviews();
+  input.value = '';
+}
+
+function renderEmPhotoPreviews() {
+  const grid = document.getElementById('emergencyPhotoGrid');
+  const area = document.getElementById('emergencyPhotoArea');
+  if (!grid) return;
+  grid.innerHTML = _emPhotos.map((f, i) => {
+    if (!f._previewUrl) f._previewUrl = URL.createObjectURL(f);
+    return `<div class="photo-preview-item">
+      <img src="${f._previewUrl}" alt="${escHtml(f.name)}">
+      <button type="button" class="photo-remove-btn" onclick="removeEmPhoto(${i})">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>`;
+  }).join('');
+  if (area) area.classList.toggle('upload-area-full', _emPhotos.length >= 3);
+}
+
+function removeEmPhoto(i) {
+  if (_emPhotos[i]?._previewUrl) URL.revokeObjectURL(_emPhotos[i]._previewUrl);
+  _emPhotos.splice(i, 1);
+  renderEmPhotoPreviews();
+}
+
+async function getEmergencyLocation() {
+  const btn    = document.getElementById('emergencyGeoBtn');
+  const status = document.getElementById('emergencyGeoStatus');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Aniqlanmoqda...';
+  try {
+    const geo = await API.getGeolocation();
+    document.getElementById('emergencyLat').value = geo.lat;
+    document.getElementById('emergencyLng').value = geo.lng;
+    status.className   = 'geo-status geo-ok';
+    status.innerHTML   = `<i class="fas fa-check-circle"></i> ${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)} (±${Math.round(geo.accuracy)}m)`;
+    btn.innerHTML = '<i class="fas fa-check"></i> Aniqlandi';
+    btn.className = 'btn-geo btn-geo-ok';
+  } catch(err) {
+    status.className = 'geo-status geo-error';
+    status.innerHTML = `<i class="fas fa-times-circle"></i> ${err.message}`;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-redo"></i> Qayta Urinish';
+  }
+}
+
+function resetEmergencyForm() {
+  document.getElementById('emergencyForm')?.reset();
+  _emPhotos = [];
+  renderEmPhotoPreviews();
+  document.getElementById('emergencyGeoStatus').innerHTML = '';
+  document.getElementById('emergencyGeoStatus').className = 'geo-status';
+  const geoBtn = document.getElementById('emergencyGeoBtn');
+  if (geoBtn) { geoBtn.disabled = false; geoBtn.className = 'btn-geo'; geoBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Joylashuvni Aniqlash'; }
+  document.getElementById('emergencySuccess').style.display = 'none';
+  document.getElementById('emergencyError').style.display   = 'none';
+  document.querySelectorAll('.etype-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.severity-btn').forEach(b => b.classList.remove('active'));
+}
+
+async function loadMyEmergencies() {
+  const el = document.getElementById('myEmergencyList');
+  if (!el) return;
+  el.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i> Yuklanmoqda...</div>';
+  try {
+    const res  = await API.request('/emergency/my');
+    const list = res.data || [];
+    if (list.length === 0) {
+      el.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle" style="color:#2E7D32"></i><p>Faol favqulodda vaziyat yo\'q</p></div>';
+      return;
+    }
+    const TYPE_ICONS = { rain:'fa-cloud-rain', wind:'fa-wind', power_outage:'fa-bolt', flood:'fa-water', damage:'fa-house-damage', fire:'fa-fire', other:'fa-question-circle' };
+    const TYPE_LBL   = { rain:"Yomg'ir", wind:'Shamol', power_outage:"Elektr o'chgan", flood:'Suv toshqini', damage:'Zarar/Talofat', fire:"Yong'in", other:'Boshqa' };
+    const SEV_LBL    = { low:'Past', medium:"O'rta", high:'Yuqori', critical:'Kritik' };
+    const SEV_CLASS  = { low:'sev-low', medium:'sev-medium', high:'sev-high', critical:'sev-critical' };
+    el.innerHTML = list.map(e => `
+      <div class="em-report-item ${e.status === 'resolved' ? 'em-resolved' : ''}">
+        <div class="em-report-header">
+          <div class="em-types">
+            ${(e.types||[]).map(t => `<span class="em-type-chip"><i class="fas ${TYPE_ICONS[t]||'fa-exclamation'}"></i> ${TYPE_LBL[t]||t}</span>`).join('')}
+          </div>
+          <span class="em-severity-chip ${SEV_CLASS[e.severity]||''}">${SEV_LBL[e.severity]||e.severity}</span>
+          ${e.status === 'resolved'
+            ? '<span class="em-status-chip em-status-resolved"><i class="fas fa-check-circle"></i> Hal qilindi</span>'
+            : '<span class="em-status-chip em-status-active"><i class="fas fa-bell"></i> Faol</span>'}
+        </div>
+        <p class="em-desc">${escHtml(e.description)}</p>
+        ${e.casualties > 0 ? `<span class="em-casualties"><i class="fas fa-user-injured"></i> Jabrlanganlar: <strong>${e.casualties}</strong></span>` : ''}
+        <div class="em-meta">
+          <i class="fas fa-clock"></i> ${formatDateTime(e.reportedAt)}
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    el.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Yuklab bo\'lmadi</p></div>';
+  }
+}
+
+// Checkbox va radio uchun vizual aktivlashtirish
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.etype-btn input[type=checkbox]').forEach(chk => {
+    chk.addEventListener('change', function() {
+      this.closest('.etype-btn').classList.toggle('active', this.checked);
+    });
+  });
+  document.querySelectorAll('.severity-btn input[type=radio]').forEach(r => {
+    r.addEventListener('change', function() {
+      document.querySelectorAll('.severity-btn').forEach(b => b.classList.remove('active'));
+      if (this.checked) this.closest('.severity-btn').classList.add('active');
+    });
+  });
+  // default severity
+  const defSev = document.querySelector('.severity-btn input[value="medium"]');
+  if (defSev) defSev.closest('.severity-btn').classList.add('active');
+});
+
+// Emergency form submit
+document.getElementById('emergencyForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const successEl = document.getElementById('emergencySuccess');
+  const errorEl   = document.getElementById('emergencyError');
+  const btn       = document.getElementById('emergencySubmitBtn');
+  successEl.style.display = 'none';
+  errorEl.style.display   = 'none';
+
+  const types = [...document.querySelectorAll('.etype-btn input[type=checkbox]:checked')].map(c => c.value);
+  if (types.length === 0) {
+    document.getElementById('emergencyErrorMsg').textContent = 'Kamida bitta vaziyat turini tanlang!';
+    errorEl.style.display = 'flex'; return;
+  }
+  const desc = document.getElementById('emergencyDesc').value.trim();
+  if (!desc) {
+    document.getElementById('emergencyErrorMsg').textContent = 'Vaziyat tavsifini kiriting!';
+    errorEl.style.display = 'flex'; return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Yuborilmoqda...';
+
+  try {
+    // Rasmlarni yuklash
+    let photoUrls = [];
+    if (_emPhotos.length > 0) {
+      const uploadRes = await API.uploadPhotos(_emPhotos);
+      if (uploadRes.success) photoUrls = uploadRes.urls || [];
+    }
+
+    const data = {
+      types,
+      severity:    document.querySelector('.severity-btn input[type=radio]:checked')?.value || 'medium',
+      description: desc,
+      casualties:  parseInt(document.getElementById('emergencyCasualties').value) || 0,
+      latitude:    document.getElementById('emergencyLat').value || null,
+      longitude:   document.getElementById('emergencyLng').value || null,
+      photos:      photoUrls,
+    };
+
+    const res = await API.request('/emergency', 'POST', data);
+    if (res.success) {
+      successEl.style.display = 'flex';
+      _emPhotos = [];
+      renderEmPhotoPreviews();
+      setTimeout(() => {
+        resetEmergencyForm();
+        loadMyEmergencies();
+      }, 2000);
+    } else {
+      document.getElementById('emergencyErrorMsg').textContent = res.message || 'Xatolik yuz berdi';
+      errorEl.style.display = 'flex';
+    }
+  } catch(err) {
+    document.getElementById('emergencyErrorMsg').textContent = "Tarmoq xatosi. Qayta urinib ko'ring.";
+    errorEl.style.display = 'flex';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Xabar Yuborish';
+});
 
 // =====================================================
 // PUSH NOTIFICATION

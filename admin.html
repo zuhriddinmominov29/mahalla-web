@@ -46,6 +46,10 @@
     <a href="#" class="nav-item" data-section="analytics">
       <i class="fas fa-chart-line"></i><span>Tahlil</span>
     </a>
+    <a href="#" class="nav-item nav-emergency" data-section="emergency">
+      <i class="fas fa-exclamation-triangle"></i><span>Favqulodda</span>
+      <span class="nav-badge nav-badge-red" id="emergencyAdminBadge" style="display:none"></span>
+    </a>
     <a href="#" class="nav-item" data-section="settings">
       <i class="fas fa-cog"></i><span>Sozlamalar</span>
     </a>
@@ -478,8 +482,123 @@
       </div>
     </section>
 
+    <!-- ====== EMERGENCY SECTION ====== -->
+    <section id="section-emergency" class="content-section">
+
+      <!-- Stats -->
+      <div class="stats-grid stats-grid-4">
+        <div class="stat-card stat-red">
+          <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="emStatActive">0</span>
+            <span class="stat-label">Faol Vaziyatlar</span>
+          </div>
+        </div>
+        <div class="stat-card stat-green">
+          <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="emStatResolved">0</span>
+            <span class="stat-label">Hal Qilingan</span>
+          </div>
+        </div>
+        <div class="stat-card stat-gold">
+          <div class="stat-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="emStatMahallas">0</span>
+            <span class="stat-label">Ta'sirlangan Mahallalar</span>
+          </div>
+        </div>
+        <div class="stat-card stat-blue">
+          <div class="stat-icon"><i class="fas fa-list"></i></div>
+          <div class="stat-info">
+            <span class="stat-number" id="emStatTotal">0</span>
+            <span class="stat-label">Jami Xabarlar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vaziyat turlari va 39 mahalla map -->
+      <div class="two-col-grid">
+
+        <!-- Vaziyat turlari statistika -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-chart-bar"></i> Vaziyat Turlari</h3>
+          </div>
+          <div class="card-body">
+            <div id="emTypeStats" class="em-type-stats">
+              <div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Og'irlik darajasi -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-signal"></i> Og'irlik Darajasi</h3>
+          </div>
+          <div class="card-body">
+            <div id="emSeverityStats" class="em-severity-stats">
+              <div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 39 ta mahalla holati -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-map"></i> 39 Mahalla Holati</h3>
+          <div class="card-header-actions">
+            <button class="btn-secondary btn-sm" onclick="AdminEmergency.load()">
+              <i class="fas fa-sync-alt"></i> Yangilash
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="emMahallaGrid" class="em-mahalla-grid">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faol xabarlar ro'yxati -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-bell"></i> Barcha Favqulodda Xabarlar</h3>
+          <div class="card-header-actions">
+            <select id="emFilterStatus" onchange="AdminEmergency.filterList()" class="filter-select">
+              <option value="all">Barchasi</option>
+              <option value="active" selected>Faol</option>
+              <option value="resolved">Hal qilingan</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="emReportsList" class="emergency-reports-list">
+            <div class="loading-state"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
   </div><!-- .content-area -->
 </div><!-- .main-content -->
+
+<!-- Emergency Detail Modal -->
+<div class="modal-overlay" id="emModal" style="display:none" onclick="closeEmModal(event)">
+  <div class="modal-box modal-box-wide" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-exclamation-triangle" style="color:#E63946"></i> Favqulodda Vaziyat Tafsiloti</h3>
+      <button class="modal-close" onclick="document.getElementById('emModal').style.display='none'">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="emModalBody"></div>
+  </div>
+</div>
 
 <!-- Rais Detail Modal -->
 <div class="modal-overlay" id="raisDetailModal" style="display:none" onclick="closeRaisModal(event)">
