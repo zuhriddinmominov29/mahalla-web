@@ -16,6 +16,8 @@ const app = express();
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  'https://mahallics.uz',
+  'https://www.mahallics.uz',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:3000',
