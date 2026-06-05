@@ -14,22 +14,22 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
-      <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
-        <div className="p-5 border-b border-gray-800">
+    <div className="flex h-screen bg-slate-100 dark:bg-gray-950 overflow-hidden">
+      <aside className="w-64 bg-white dark:bg-gray-900 border-r border-slate-200 dark:border-gray-800 flex flex-col">
+        <div className="p-5 border-b border-slate-200 dark:border-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-xl">⚙️</div>
             <div>
-              <div className="text-sm font-bold text-white">Mahalla Tizimi</div>
-              <div className="text-xs text-purple-400">Super Admin</div>
+              <div className="text-sm font-bold text-gray-900 dark:text-white">Mahalla Tizimi</div>
+              <div className="text-xs text-purple-500">Super Admin</div>
             </div>
           </div>
         </div>
 
-        <div className="p-4 border-b border-gray-800">
-          <div className="bg-purple-600/10 border border-purple-600/20 rounded-xl p-3">
-            <div className="text-xs text-purple-400 font-medium mb-1">🛡️ Super Admin</div>
-            <div className="text-sm font-semibold text-white">{user?.full_name}</div>
+        <div className="p-4 border-b border-slate-200 dark:border-gray-800">
+          <div className="bg-purple-50 dark:bg-purple-600/10 border border-purple-200 dark:border-purple-600/20 rounded-xl p-3">
+            <div className="text-xs text-purple-600 dark:text-purple-400 font-medium mb-1">🛡️ Super Admin</div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">{user?.full_name}</div>
           </div>
         </div>
 
@@ -38,7 +38,9 @@ export default function AdminLayout() {
             <NavLink key={n.to} to={n.to}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
-                ${isActive ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`
+                ${isActive
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-800'}`
               }
             >
               <span className="text-lg">{n.icon}</span>{n.label}
@@ -46,14 +48,14 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-gray-800 space-y-1">
+        <div className="p-3 border-t border-slate-200 dark:border-gray-800 space-y-1">
           <button onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-all">
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-gray-800 transition-all">
             <span className="text-lg">{theme === 'dark' ? '☀️' : '🌙'}</span>
             {theme === 'dark' ? "Yorug' rejim" : "Qorong'u rejim"}
           </button>
           <button onClick={() => { logout(); navigate('/login'); toast.success('Chiqildi'); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-400 hover:bg-red-950/30 transition-all">
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-600 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all">
             <span className="text-lg">🚪</span> Chiqish
           </button>
         </div>
