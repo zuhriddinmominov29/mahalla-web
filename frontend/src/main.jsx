@@ -4,6 +4,10 @@ import { Toaster } from 'react-hot-toast';
 import App from './App';
 import './index.css';
 
+// Init theme before render
+const savedTheme = localStorage.getItem('mb_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />
@@ -12,9 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       toastOptions={{
         duration: 3500,
         style: {
-          background: '#1e293b',
-          color: '#f1f5f9',
-          border: '1px solid #334155',
+          background: 'var(--bg-surface)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border)',
         },
       }}
     />

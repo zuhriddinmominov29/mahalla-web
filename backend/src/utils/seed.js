@@ -2,13 +2,13 @@
  * Seed script — Barcha foydalanuvchilarni yaratadi
  * Ishlatish: node src/utils/seed.js
  */
-require('dotenv').config({ path: '../../.env' });
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const bcrypt    = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
 
 const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
-const DISTRICT_ID = '00000000-0000-0000-0000-000000000001';
+const DISTRICT_ID = '11111111-1111-1111-1111-111111111111';
 
 const RAISLAR = [
   { name: "To'rayev O'ral Samatovich",             mahalla: 'Avlod' },
@@ -71,7 +71,7 @@ async function seed() {
   await db.from('users').upsert({
     district_id: DISTRICT_ID, mahalla_id: null,
     role: 'super_admin', full_name: 'Super Administrator',
-    username: 'admin', password_hash: adminHash,
+    username: 'admin', password_hash: adminHash, is_active: true,
   }, { onConflict: 'username' });
   console.log('✅ Super Admin yaratildi');
 
@@ -80,7 +80,7 @@ async function seed() {
     district_id: DISTRICT_ID, mahalla_id: null,
     role: 'hokim',
     full_name: "Bahodir Shukurov Shato'rayevich",
-    username: 'hokim', password_hash: adminHash,
+    username: 'hokim', password_hash: adminHash, is_active: true,
   }, { onConflict: 'username' });
   console.log('✅ Hokim yaratildi');
 
@@ -88,7 +88,7 @@ async function seed() {
   await db.from('users').upsert({
     district_id: DISTRICT_ID, mahalla_id: null,
     role: 'uyushma', full_name: 'Zoir Rahmonov',
-    username: 'uyushma', password_hash: defaultHash,
+    username: 'uyushma', password_hash: defaultHash, is_active: true,
   }, { onConflict: 'username' });
   console.log('✅ Uyushma Rahbari yaratildi');
 
@@ -109,6 +109,7 @@ async function seed() {
       full_name:   r.name,
       username,
       password_hash: defaultHash,
+      is_active: true,
     }, { onConflict: 'username' });
     count++;
   }

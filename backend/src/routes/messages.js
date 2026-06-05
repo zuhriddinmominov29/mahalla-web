@@ -149,6 +149,47 @@ router.post('/', auth, upload.array('files', 5), async (req, res) => {
   }
 });
 
+// PATCH /api/messages/:id — xabarni tahrirlash (faqat o'z xabari)
+router.patch('/:id', auth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim())
+      return res.json({ success: false, message: 'Matn bo\'sh bo\'lmasin' });
+
+    const { data: msg } = await db.from('messages').select('sender_id').eq('id', req.params.id).single();
+    if (!msg) return res.json({ success: false, message: 'Xabar topilmadi' });
+    if (msg.sender_id !== req.user.id)
+      return res.json({ success: false, message: 'Faqat o\'z xabaringizni tahrirlash mumkin' });
+
+    const { data, error } = await db.from('messages')
+      .update({ content: content.trim(), is_edited: true })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
+// DELETE /api/messages/:id — xabarni o'chirish (faqat o'z xabari)
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const { data: msg } = await db.from('messages').select('sender_id').eq('id', req.params.id).single();
+    if (!msg) return res.json({ success: false, message: 'Xabar topilmadi' });
+    if (msg.sender_id !== req.user.id)
+      return res.json({ success: false, message: 'Faqat o\'z xabaringizni o\'chirish mumkin' });
+
+    await db.from('attachments').delete().eq('message_id', req.params.id);
+    await db.from('message_reads').delete().eq('message_id', req.params.id);
+    await db.from('messages').delete().eq('id', req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // POST /api/messages/:id/read — o'qildi deb belgilash
 router.post('/:id/read', auth, async (req, res) => {
   try {

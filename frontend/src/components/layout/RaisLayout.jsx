@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
+import useThemeStore from '../../store/themeStore';
 import toast from 'react-hot-toast';
 
 const nav = [
@@ -8,7 +9,8 @@ const nav = [
 ];
 
 export default function RaisLayout() {
-  const { user, logout } = useAuthStore();
+  const { user, logout }       = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -18,22 +20,36 @@ export default function RaisLayout() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden theme-bg">
 
       {/* Top header */}
-      <header className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3 flex-shrink-0">
+      <header className="border-b theme-surface theme-border px-4 py-3 flex items-center gap-3 flex-shrink-0"
+              style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-base">🏛️</div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-bold text-white leading-tight truncate">{user?.full_name}</div>
-          <div className="text-xs text-gray-500 leading-tight truncate">
+          <div className="text-xs font-bold leading-tight truncate" style={{ color: 'var(--text-primary)' }}>
+            {user?.full_name}
+          </div>
+          <div className="text-xs leading-tight truncate" style={{ color: 'var(--text-muted)' }}>
             {user?.role === 'uyushma' ? '🤝 Uyushma Rahbari' : '👤 Mahalla Raisi'}
             {user?.mahalla_name ? ` · ${user.mahalla_name} MFY` : ''}
           </div>
         </div>
+
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="w-8 h-8 flex items-center justify-center rounded-lg transition-all text-base"
+          style={{ color: 'var(--text-muted)' }}
+          title={theme === 'dark' ? "Yorug' rejim" : "Qorong'u rejim"}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+
         <button
           onClick={handleLogout}
-          className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400
-                     hover:text-red-400 hover:bg-red-950/30 transition-all text-base"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-base transition-all"
+          style={{ color: 'var(--text-muted)' }}
           title="Chiqish"
         >
           🚪
@@ -46,17 +62,17 @@ export default function RaisLayout() {
       </main>
 
       {/* Bottom navigation */}
-      <nav className="bg-gray-900 border-t border-gray-800 flex flex-shrink-0 safe-area-bottom">
+      <nav className="border-t flex flex-shrink-0 safe-area-bottom"
+           style={{ background: 'var(--bg-surface)', borderColor: 'var(--border)' }}>
         {nav.map(n => (
           <NavLink
             key={n.to}
             to={n.to}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-medium transition-all duration-200
-              ${isActive
-                ? 'text-primary-400'
-                : 'text-gray-500 hover:text-gray-300'}`
+              ${isActive ? 'text-primary-500' : ''}`
             }
+            style={({ isActive }) => isActive ? {} : { color: 'var(--text-muted)' }}
           >
             {({ isActive }) => (
               <>
