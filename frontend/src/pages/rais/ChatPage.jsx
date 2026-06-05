@@ -13,6 +13,7 @@ export default function RaisChatPage() {
   const [files, setFiles]         = useState([]);
   const [sending, setSending]     = useState(false);
   const [loading, setLoading]     = useState(true);
+  const [location, setLocation]   = useState(null);
   const bottomRef = useRef(null);
   const fileRef   = useRef(null);
 
@@ -48,15 +49,34 @@ export default function RaisChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  function getLocation() {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) return resolve(null);
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+        ()  => resolve(null),
+        { timeout: 5000, maximumAge: 60000 }
+      );
+    });
+  }
+
   async function sendMessage(e) {
     e.preventDefault();
     if (!content.trim() && files.length === 0) return;
 
     setSending(true);
     try {
+      const loc = await getLocation();
+      if (loc) setLocation(loc);
+
       const form = new FormData();
       if (content.trim()) form.append('content', content.trim());
       files.forEach(f => form.append('files', f));
+      if (loc) {
+        form.append('latitude',  loc.latitude);
+        form.append('longitude', loc.longitude);
+        form.append('accuracy',  loc.accuracy);
+      }
 
       const res = await api.post('/messages', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -90,11 +110,11 @@ export default function RaisChatPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center gap-4">
-        <div className="w-10 h-10 bg-gold-500 rounded-xl flex items-center justify-center text-xl">🏛️</div>
+      <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
+        <div className="w-9 h-9 bg-gold-500 rounded-xl flex items-center justify-center text-lg">📋</div>
         <div>
-          <div className="font-semibold text-white">Hokim bilan chat</div>
-          <div className="text-xs text-gray-400">Bahodir Shukurov Shato'rayevich</div>
+          <div className="font-semibold text-white text-sm">Hisobotlar</div>
+          <div className="text-xs text-gray-400">Hokimga kunlik hisobot yuboring</div>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -111,8 +131,8 @@ export default function RaisChatPage() {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <span className="text-5xl mb-3">💬</span>
-            <p className="text-gray-400">Hali xabar yo'q</p>
-            <p className="text-gray-600 text-sm">Hokimga hisobot yuboring</p>
+            <p className="text-gray-400">Hali hisobot yo'q</p>
+            <p className="text-gray-600 text-sm">Bugungi hisobotingizni yuboring</p>
           </div>
         ) : (
           messages.map(msg => (
@@ -186,7 +206,7 @@ export default function RaisChatPage() {
             value={content}
             onChange={e => setContent(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e); }}}
-            placeholder="Hisobot yozing... (Enter = yuborish, Shift+Enter = yangi qator)"
+            placeholder="Hisobotingizni yozing... (Enter = yuborish, Shift+Enter = yangi qator)"
             rows={1}
             className="input flex-1 resize-none max-h-32 py-2.5"
             style={{ height: 'auto' }}

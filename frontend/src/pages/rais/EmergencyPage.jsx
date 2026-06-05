@@ -55,9 +55,9 @@ export default function RaisEmergencyPage() {
     <div className="flex flex-col h-full overflow-auto">
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
         <h1 className="text-lg font-bold text-white flex items-center gap-2">
-          🚨 <span>Favqulodda Vaziyat Xabari</span>
+          ⚠️ <span>Vaziyat Bo'limi</span>
         </h1>
-        <p className="text-xs text-gray-400 mt-0.5">Hokimga zudlik bilan xabar yuboring</p>
+        <p className="text-xs text-gray-400 mt-0.5">Mahallangizda yuzaga kelgan vaziyat haqida xabar bering</p>
       </div>
 
       <div className="flex-1 p-6 max-w-2xl mx-auto w-full space-y-6">
@@ -110,7 +110,7 @@ export default function RaisEmergencyPage() {
 
         <button onClick={handleSubmit} disabled={sending}
           className="btn-danger w-full py-4 text-base font-bold">
-          {sending ? '⏳ Yuborilmoqda...' : '🚨 Favqulodda xabar yuborish'}
+          {sending ? '⏳ Yuborilmoqda...' : '⚠️ Vaziyat xabarini yuborish'}
         </button>
 
         {/* Mening xabarlarim */}

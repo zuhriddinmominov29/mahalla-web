@@ -4,9 +4,10 @@ import toast from 'react-hot-toast';
 
 const nav = [
   { to: '/hokim/dashboard', icon: '📊', label: 'Dashboard' },
-  { to: '/hokim/chats',     icon: '💬', label: 'Barcha xabarlar' },
-  { to: '/hokim/emergency', icon: '🚨', label: 'Favqulodda' },
+  { to: '/hokim/chats',     icon: '📋', label: 'Hisobotlar' },
+  { to: '/hokim/emergency', icon: '⚠️',  label: "Vaziyat bo'limi" },
   { to: '/hokim/analytics', icon: '📈', label: 'Tahlil' },
+  { to: '/hokim/map',       icon: '🗺️',  label: 'Xarita' },
 ];
 
 export default function HokimLayout() {

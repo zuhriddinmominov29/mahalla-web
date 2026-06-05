@@ -66,7 +66,7 @@ router.get('/', auth, async (req, res) => {
 // POST /api/messages — xabar yuborish
 router.post('/', auth, upload.array('files', 5), async (req, res) => {
   try {
-    const { content, recipients } = req.body;
+    const { content, recipients, latitude, longitude, accuracy } = req.body;
     if (!content && (!req.files || req.files.length === 0))
       return res.json({ success: false, message: 'Xabar matni yoki fayl kerak' });
 
@@ -136,6 +136,9 @@ router.post('/', auth, upload.array('files', 5), async (req, res) => {
         mahalla_id:  req.user.mahalla_id,
         message_id:  message.id,
         submit_date: new Date().toISOString().split('T')[0],
+        latitude:    latitude  ? parseFloat(latitude)  : null,
+        longitude:   longitude ? parseFloat(longitude) : null,
+        accuracy:    accuracy  ? parseFloat(accuracy)  : null,
       }, { onConflict: 'user_id,submit_date' });
     }
 

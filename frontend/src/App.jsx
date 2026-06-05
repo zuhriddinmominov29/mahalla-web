@@ -8,8 +8,8 @@ import HokimLayout      from './components/layout/HokimLayout';
 import AdminLayout      from './components/layout/AdminLayout';
 
 // Rais pages
-import RaisChatPage     from './pages/rais/ChatPage';
-import RaisEmergency    from './pages/rais/EmergencyPage';
+import RaisHisobotlar   from './pages/rais/ChatPage';
+import RaisVaziyat      from './pages/rais/EmergencyPage';
 
 // Hokim pages
 import HokimDashboard   from './pages/hokim/DashboardPage';
@@ -17,6 +17,7 @@ import HokimAllChats    from './pages/hokim/AllChatsPage';
 import HokimChat        from './pages/hokim/ChatDetailPage';
 import HokimEmergency   from './pages/hokim/EmergencyPage';
 import HokimAnalytics   from './pages/hokim/AnalyticsPage';
+import HokimMap         from './pages/hokim/MapPage';
 
 // Admin pages
 import AdminUsers       from './pages/admin/UsersPage';
@@ -35,8 +36,8 @@ function HomeRedirect() {
   const routes = {
     super_admin: '/admin/users',
     hokim:       '/hokim/dashboard',
-    uyushma:     '/rais/chat',
-    rais:        '/rais/chat',
+    uyushma:     '/rais/hisobotlar',
+    rais:        '/rais/hisobotlar',
   };
   return <Navigate to={routes[user.role] || '/login'} replace />;
 }
@@ -54,9 +55,9 @@ export default function App() {
             <RaisLayout />
           </ProtectedRoute>
         }>
-          <Route path="chat"      element={<RaisChatPage />} />
-          <Route path="emergency" element={<RaisEmergency />} />
-          <Route index element={<Navigate to="chat" replace />} />
+          <Route path="hisobotlar" element={<RaisHisobotlar />} />
+          <Route path="vaziyat"    element={<RaisVaziyat />} />
+          <Route index element={<Navigate to="hisobotlar" replace />} />
         </Route>
 
         {/* HOKIM */}
@@ -70,6 +71,7 @@ export default function App() {
           <Route path="chat/:userId" element={<HokimChat />} />
           <Route path="emergency" element={<HokimEmergency />} />
           <Route path="analytics" element={<HokimAnalytics />} />
+          <Route path="map"       element={<HokimMap />} />
           <Route index element={<Navigate to="dashboard" replace />} />
         </Route>
 

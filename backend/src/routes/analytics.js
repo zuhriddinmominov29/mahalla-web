@@ -74,7 +74,7 @@ router.get('/submissions', auth, role('hokim', 'super_admin'), async (req, res) 
     // Shu kun hisobot berganlar
     const { data: subs } = await db
       .from('daily_submissions')
-      .select('user_id, created_at, message_id')
+      .select('user_id, created_at, message_id, latitude, longitude, accuracy')
       .eq('district_id', districtId)
       .eq('submit_date', date);
 
@@ -88,6 +88,9 @@ router.get('/submissions', auth, role('hokim', 'super_admin'), async (req, res) 
       mahalla_name: r.mahallas?.name || '—',
       submitted:    !!subMap[r.id],
       submitted_at: subMap[r.id]?.created_at || null,
+      latitude:     subMap[r.id]?.latitude  || null,
+      longitude:    subMap[r.id]?.longitude || null,
+      accuracy:     subMap[r.id]?.accuracy  || null,
     }));
 
     res.json({ success: true, data: result, date });
@@ -129,6 +132,90 @@ router.get('/weekly', auth, role('hokim', 'super_admin'), async (req, res) => {
     });
   } catch (err) {
     res.json({ success: true, data: [] });
+  }
+});
+
+// GET /api/analytics/monthly — har bir raisning oylik hisobot soni + vaziyat soni
+router.get('/monthly', auth, role('hokim', 'super_admin'), async (req, res) => {
+  try {
+    const districtId = req.user.district_id;
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay  = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const today    = now.toISOString().split('T')[0];
+
+    // Barcha raislar
+    const { data: raislar } = await db
+      .from('users')
+      .select('id, full_name, role, mahalla_id, mahallas(name)')
+      .eq('district_id', districtId)
+      .in('role', ['rais', 'uyushma'])
+      .eq('is_active', true)
+      .order('full_name');
+
+    // Oylik hisobotlar (daily_submissions)
+    const { data: monthlySubs } = await db
+      .from('daily_submissions')
+      .select('user_id, submit_date')
+      .eq('district_id', districtId)
+      .gte('submit_date', firstDay)
+      .lte('submit_date', lastDay);
+
+    // Bugungi hisobot
+    const { data: todaySubs } = await db
+      .from('daily_submissions')
+      .select('user_id')
+      .eq('district_id', districtId)
+      .eq('submit_date', today);
+
+    // Vaziyat xabarlari (oylik)
+    const { data: monthlyEmergencies } = await db
+      .from('emergencies')
+      .select('reporter_id')
+      .eq('district_id', districtId)
+      .gte('created_at', firstDay)
+      .lte('created_at', lastDay + 'T23:59:59');
+
+    // Jamlashtirish
+    const monthMap = {};
+    (monthlySubs || []).forEach(s => {
+      monthMap[s.user_id] = (monthMap[s.user_id] || 0) + 1;
+    });
+
+    const todaySet = new Set((todaySubs || []).map(s => s.user_id));
+
+    const emergencyMap = {};
+    (monthlyEmergencies || []).forEach(e => {
+      emergencyMap[e.reporter_id] = (emergencyMap[e.reporter_id] || 0) + 1;
+    });
+
+    const result = (raislar || []).map(r => ({
+      id:              r.id,
+      full_name:       r.full_name,
+      role:            r.role,
+      mahalla_name:    r.mahallas?.name || '—',
+      today_submitted: todaySet.has(r.id),
+      monthly_reports: monthMap[r.id] || 0,
+      monthly_vaziyat: emergencyMap[r.id] || 0,
+    }));
+
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysPassed  = now.getDate();
+
+    res.json({
+      success: true,
+      data: result,
+      meta: {
+        month:        now.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' }),
+        days_passed:  daysPassed,
+        days_in_month: daysInMonth,
+        today_count:  todaySet.size,
+        total_raislar: raislar?.length || 0,
+      },
+    });
+  } catch (err) {
+    console.error('Monthly analytics xatosi:', err);
+    res.json({ success: false, data: [] });
   }
 });
 
