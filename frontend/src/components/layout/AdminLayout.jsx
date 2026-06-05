@@ -14,9 +14,8 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex h-screen overflow-hidden theme-bg">
-      <aside className="w-64 flex flex-col"
-             style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border)' }}>
+    <div className="flex h-screen bg-gray-950 overflow-hidden">
+      <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
         <div className="p-5 border-b border-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-xl">⚙️</div>
@@ -47,16 +46,14 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="p-3" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="p-3 border-t border-gray-800 space-y-1">
           <button onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all mb-1"
-            style={{ color: 'var(--text-muted)' }}>
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition-all">
             <span className="text-lg">{theme === 'dark' ? '☀️' : '🌙'}</span>
             {theme === 'dark' ? "Yorug' rejim" : "Qorong'u rejim"}
           </button>
           <button onClick={() => { logout(); navigate('/login'); toast.success('Chiqildi'); }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-            style={{ color: 'var(--text-muted)' }}>
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-400 hover:text-red-400 hover:bg-red-950/30 transition-all">
             <span className="text-lg">🚪</span> Chiqish
           </button>
         </div>

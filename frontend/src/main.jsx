@@ -7,6 +7,8 @@ import './index.css';
 // Init theme before render
 const savedTheme = localStorage.getItem('mb_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
+if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+else document.documentElement.classList.remove('dark');
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

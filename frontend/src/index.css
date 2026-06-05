@@ -2,45 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Dark mode (default) ─────────────────────────────────── */
-:root {
-  --bg-base:    #030712;
-  --bg-surface: #111827;
-  --bg-card:    #111827;
-  --bg-input:   #1f2937;
-  --border:     #1f2937;
-  --text-primary:   #f9fafb;
-  --text-secondary: #9ca3af;
-  --text-muted:     #6b7280;
-  --scrollbar-track: #111827;
-  --scrollbar-thumb: #374151;
+/* ═══════════════════════════════════════════════
+   LIGHT MODE OVERRIDES
+   (dark mode = Tailwind defaults, hardcoded dark classes)
+   ═══════════════════════════════════════════════ */
+
+/* Base */
+html:not(.dark) body {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
 
-/* ── Light mode ──────────────────────────────────────────── */
-[data-theme="light"] {
-  --bg-base:    #f1f5f9;
-  --bg-surface: #ffffff;
-  --bg-card:    #ffffff;
-  --bg-input:   #f8fafc;
-  --border:     #e2e8f0;
-  --text-primary:   #0f172a;
-  --text-secondary: #475569;
-  --text-muted:     #94a3b8;
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #cbd5e1;
+/* Gray scale overrides for light mode */
+html:not(.dark) .bg-gray-950 { background-color: #f1f5f9 !important; }
+html:not(.dark) .bg-gray-900 { background-color: #ffffff !important; }
+html:not(.dark) .bg-gray-800 { background-color: #f8fafc !important; }
+html:not(.dark) .bg-gray-700 { background-color: #e2e8f0 !important; }
+
+html:not(.dark) .border-gray-800 { border-color: #e2e8f0 !important; }
+html:not(.dark) .border-gray-700 { border-color: #cbd5e1 !important; }
+
+html:not(.dark) .text-gray-100 { color: #0f172a !important; }
+html:not(.dark) .text-gray-200 { color: #1e293b !important; }
+html:not(.dark) .text-gray-300 { color: #334155 !important; }
+html:not(.dark) .text-gray-400 { color: #64748b !important; }
+html:not(.dark) .text-gray-500 { color: #94a3b8 !important; }
+html:not(.dark) .text-gray-600 { color: #94a3b8 !important; }
+
+/* Input / textarea */
+html:not(.dark) .input,
+html:not(.dark) input.input,
+html:not(.dark) textarea.input {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+html:not(.dark) .input::placeholder { color: #94a3b8 !important; }
+
+/* Card */
+html:not(.dark) .card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+html:not(.dark) .stat-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
 }
 
+/* Buttons */
+html:not(.dark) .btn-secondary {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+html:not(.dark) .btn-secondary:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Sidebar nav hover */
+html:not(.dark) .hover\:bg-gray-800:hover { background-color: #f1f5f9 !important; }
+html:not(.dark) .hover\:bg-gray-700:hover { background-color: #e2e8f0 !important; }
+
+/* Chat messages */
+html:not(.dark) .bg-gray-800\/50 { background-color: rgba(241, 245, 249, 0.8) !important; }
+html:not(.dark) .bg-gray-800\/30 { background-color: rgba(248, 250, 252, 0.8) !important; }
+html:not(.dark) .bg-gray-900\/50 { background-color: rgba(255, 255, 255, 0.8) !important; }
+html:not(.dark) .bg-gray-900\/95 { background-color: rgba(255, 255, 255, 0.95) !important; }
+
+/* Scrollbar */
+html:not(.dark) ::-webkit-scrollbar-track { background: #f1f5f9 !important; }
+html:not(.dark) ::-webkit-scrollbar-thumb { background: #cbd5e1 !important; }
+
+/* Text white overrides */
+html:not(.dark) .text-white { color: #0f172a !important; }
+
+/* Special: gold text should stay */
+html:not(.dark) .text-gold-400 { color: #b45309 !important; }
+html:not(.dark) .text-gold-500 { color: #92400e !important; }
+
+/* Active nav item stays colored */
+html:not(.dark) .bg-gold-500 { background-color: #C9A227 !important; color: #1a1a1a !important; }
+html:not(.dark) .text-primary-400 { color: #1E3A6E !important; }
+html:not(.dark) .text-primary-500 { color: #0D2B5C !important; }
+
+/* ═══════════════════════════════════════════════
+   DARK MODE BASE (default)
+   ═══════════════════════════════════════════════ */
 @layer base {
-  * { border-color: var(--border); }
-  body {
-    background-color: var(--bg-base);
-    color: var(--text-primary);
-    @apply font-sans antialiased;
-    transition: background-color 0.2s, color 0.2s;
-  }
+  body { @apply bg-gray-950 text-gray-100 font-sans antialiased; }
   ::-webkit-scrollbar { @apply w-1.5; }
-  ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-  ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 999px; }
+  ::-webkit-scrollbar-track { @apply bg-gray-900; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-700 rounded-full; }
 }
 
 @layer components {
@@ -51,8 +102,7 @@
            flex items-center gap-2 justify-center;
   }
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium
-           dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium
            px-4 py-2.5 rounded-xl transition-all duration-200
            flex items-center gap-2 justify-center;
   }
@@ -62,28 +112,15 @@
            flex items-center gap-2 justify-center;
   }
   .input {
-    background-color: var(--bg-input);
-    border-color: var(--border);
-    color: var(--text-primary);
-    @apply w-full rounded-xl px-4 py-3 border
-           placeholder-gray-400
+    @apply w-full bg-gray-800 border border-gray-700 rounded-xl
+           px-4 py-3 text-gray-100 placeholder-gray-500
            focus:outline-none focus:ring-2 focus:ring-primary-500
            focus:border-transparent transition-all duration-200;
   }
   .card {
-    background-color: var(--bg-card);
-    border-color: var(--border);
-    @apply border rounded-2xl p-5;
+    @apply bg-gray-900 border border-gray-800 rounded-2xl p-5;
   }
   .stat-card {
-    background-color: var(--bg-card);
-    border-color: var(--border);
-    @apply border rounded-2xl p-5 flex items-center gap-4;
+    @apply bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center gap-4;
   }
-  /* Theme-aware utility classes */
-  .theme-bg      { background-color: var(--bg-base); }
-  .theme-surface { background-color: var(--bg-surface); }
-  .theme-text    { color: var(--text-primary); }
-  .theme-muted   { color: var(--text-muted); }
-  .theme-border  { border-color: var(--border); }
 }
