@@ -38,12 +38,13 @@
   .card {
     @apply bg-white dark:bg-gray-900
            border border-slate-200 dark:border-gray-800
-           rounded-2xl p-5;
+           rounded-2xl p-5 shadow-sm;
   }
   .stat-card {
     @apply bg-white dark:bg-gray-900
            border border-slate-200 dark:border-gray-800
-           rounded-2xl p-5 flex items-center gap-4;
+           rounded-2xl p-5 flex items-center gap-4 shadow-sm
+           hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
   }
   /* Sidebar & panel surfaces */
   .surface {
@@ -51,6 +52,13 @@
            border-slate-200 dark:border-gray-800;
   }
 }
+
+/* Sahifa kirish animatsiyasi */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+.fade-up { animation: fade-up 0.3s ease-out; }
 
 /* Chat animatsiyalari */
 @keyframes msg-in {
