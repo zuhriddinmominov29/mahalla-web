@@ -1,75 +1,46 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { uz } from 'date-fns/locale';
-import toast from 'react-hot-toast';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../../lib/api';
-import { supabase } from '../../lib/supabase';
 import useAuthStore from '../../store/authStore';
+import useChat from '../../components/chat/useChat';
+import MessageList from '../../components/chat/MessageList';
+import ChatInput from '../../components/chat/ChatInput';
+import { initials } from '../../components/chat/chatUtils';
 
 export default function HokimAllChatsPage() {
-  const { user }        = useAuthStore();
-  const [users,      setUsers]      = useState([]);
-  const [messages,   setMessages]   = useState([]);
-  const [selected,   setSelected]   = useState(null);
-  const [content,    setContent]    = useState('');
-  const [replyTo,    setReplyTo]    = useState('all');
-  const [sending,    setSending]    = useState(false);
-  const [files,      setFiles]      = useState([]);
-  const [loadingMsg, setLoadingMsg] = useState(false);
-  const bottomRef = useRef(null);
-  const fileRef   = useRef(null);
+  const { user } = useAuthStore();
+  const [users, setUsers]       = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [replyMode, setReplyMode]   = useState('all'); // 'all' | 'selected'
+  const [replyingTo, setReplyingTo] = useState(null);
+
+  const { messages, loading, sending, send, remove, edit, markRead } =
+    useChat({ user, limit: 100, autoRead: false });
 
   useEffect(() => {
     api.get('/users').then(r => {
-      if (r.success) setUsers(r.data.filter(u => ['rais','uyushma'].includes(u.role)));
+      if (r.success) setUsers(r.data.filter(u => ['rais', 'uyushma'].includes(u.role)));
     });
   }, []);
 
-  const loadMessages = useCallback(async () => {
-    setLoadingMsg(true);
-    try {
-      const res = await api.get('/messages?limit=100');
-      if (res.success) {
-        const msgs = selected
-          ? res.data.filter(m => m.sender?.id === selected ||
-              (m.sender?.role === 'hokim' && (m.recipients === null || m.recipients?.includes(selected))))
-          : res.data;
-        setMessages(msgs);
-      }
-    } finally { setLoadingMsg(false); }
-  }, [selected]);
+  // Tanlangan rais bo'yicha filtr (клиентда — chat almashish bir zumda)
+  const filtered = useMemo(() => {
+    if (!selected) return messages;
+    return messages.filter(m => m.sender?.id === selected ||
+      (m.sender?.role === 'hokim' && (m.recipients === null || m.recipients?.includes(selected))));
+  }, [messages, selected]);
 
-  useEffect(() => {
-    loadMessages();
-    const ch = supabase.channel('hokim-msgs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages',
-        filter: `district_id=eq.${user.district_id}` }, () => loadMessages())
-      .subscribe();
-    return () => supabase.removeChannel(ch);
-  }, [loadMessages, user.district_id]);
-
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-
-  async function sendReply(e) {
-    e.preventDefault();
-    if (!content.trim() && !files.length) return;
-    setSending(true);
-    try {
-      const form = new FormData();
-      if (content.trim()) form.append('content', content.trim());
-      files.forEach(f => form.append('files', f));
-      if (replyTo !== 'all' && selected) {
-        form.append('recipients', JSON.stringify([selected]));
-      }
-      const res = await api.post('/messages', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-      if (res.success) { setContent(''); setFiles([]); loadMessages(); }
-      else toast.error(res.message);
-    } catch { toast.error('Xato'); }
-    finally { setSending(false); }
-  }
+  // Ochiq chatdagi xabarlarni o'qilgan deb belgilash
+  useEffect(() => { markRead(filtered); }, [filtered, markRead]);
 
   const selectedUser = users.find(u => u.id === selected);
-  const unread = (uid) => messages.filter(m => m.sender?.id === uid && !m.is_read).length;
+  const unread = uid => messages.filter(m => m.sender?.id === uid && !m.is_read).length;
+
+  async function handleSend({ content, files }) {
+    const reply = replyingTo;
+    setReplyingTo(null);
+    const recipients = (replyMode === 'selected' && selected) ? [selected] : null;
+    return send({ content, files, replyTo: reply, recipients });
+  }
 
   return (
     <div className="flex h-full">
@@ -79,13 +50,17 @@ export default function HokimAllChatsPage() {
           <h2 className="font-semibold text-gray-900 dark:text-white text-sm">Raislar ({users.length})</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {/* Hammasi */}
           <button onClick={() => setSelected(null)}
             className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-all
               ${!selected
-                ? 'bg-slate-100 dark:bg-gray-800 border-r-2 border-primary-500'
+                ? 'bg-primary-50 dark:bg-primary-600/15 border-r-2 border-primary-500'
                 : 'hover:bg-slate-50 dark:hover:bg-gray-800'}`}>
-            <div className="w-9 h-9 bg-primary-100 dark:bg-primary-600/20 rounded-xl flex items-center justify-center text-lg flex-shrink-0">💬</div>
+            <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+            </div>
             <div>
               <div className="font-medium text-gray-800 dark:text-gray-200">Barcha xabarlar</div>
               <div className="text-xs text-gray-500">{messages.length} ta xabar</div>
@@ -98,10 +73,13 @@ export default function HokimAllChatsPage() {
               <button key={u.id} onClick={() => setSelected(u.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-all
                   ${selected === u.id
-                    ? 'bg-slate-100 dark:bg-gray-800 border-r-2 border-primary-500'
+                    ? 'bg-primary-50 dark:bg-primary-600/15 border-r-2 border-primary-500'
                     : 'hover:bg-slate-50 dark:hover:bg-gray-800'}`}>
-                <div className="w-9 h-9 bg-slate-200 dark:bg-gray-700 rounded-xl flex items-center justify-center text-base flex-shrink-0">
-                  {u.role === 'uyushma' ? '🤝' : '👤'}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 shadow-sm
+                  ${u.role === 'uyushma'
+                    ? 'bg-gradient-to-br from-gold-400 to-gold-600 text-white'
+                    : 'bg-gradient-to-br from-slate-400 to-slate-600 dark:from-gray-600 dark:to-gray-800 text-white'}`}>
+                  {initials(u.full_name)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-gray-800 dark:text-gray-200 truncate text-xs">{u.full_name}</div>
@@ -110,7 +88,7 @@ export default function HokimAllChatsPage() {
                   </div>
                 </div>
                 {cnt > 0 && (
-                  <span className="text-xs bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-bold bg-primary-500 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center flex-shrink-0">
                     {cnt}
                   </span>
                 )}
@@ -121,13 +99,13 @@ export default function HokimAllChatsPage() {
       </div>
 
       {/* Chat */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-slate-200 dark:border-gray-800 px-5 py-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-gray-900 border-b border-slate-200 dark:border-gray-800 px-5 py-3 flex items-center gap-3 flex-shrink-0">
           {selected ? (
             <>
-              <div className="w-9 h-9 bg-slate-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                {selectedUser?.role === 'uyushma' ? '🤝' : '👤'}
+              <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-600 dark:from-gray-600 dark:to-gray-800 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                {initials(selectedUser?.full_name)}
               </div>
               <div>
                 <div className="font-semibold text-gray-900 dark:text-white text-sm">{selectedUser?.full_name}</div>
@@ -136,7 +114,12 @@ export default function HokimAllChatsPage() {
             </>
           ) : (
             <>
-              <div className="w-9 h-9 bg-primary-100 dark:bg-primary-600/20 rounded-xl flex items-center justify-center">💬</div>
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                </svg>
+              </div>
               <div>
                 <div className="font-semibold text-gray-900 dark:text-white text-sm">Barcha xabarlar</div>
                 <div className="text-xs text-gray-500">{messages.length} ta xabar</div>
@@ -144,11 +127,12 @@ export default function HokimAllChatsPage() {
             </>
           )}
           <div className="ml-auto flex gap-2">
-            {['all','selected'].map(r => (
-              <button key={r} onClick={() => setReplyTo(r)}
-                className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all
-                  ${replyTo === r
-                    ? 'bg-gold-500 text-gray-950 border-gold-500'
+            {['all', 'selected'].map(r => (
+              <button key={r} onClick={() => setReplyMode(r)}
+                disabled={r === 'selected' && !selected}
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-all disabled:opacity-40
+                  ${replyMode === r
+                    ? 'bg-gold-500 text-gray-950 border-gold-500 shadow-sm'
                     : 'border-slate-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-slate-400 dark:hover:border-gray-600'}`}>
                 {r === 'all' ? '👥 Hammaga' : '👤 Faqat shu raisga'}
               </button>
@@ -156,87 +140,33 @@ export default function HokimAllChatsPage() {
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 dark:bg-gray-950">
-          {loadingMsg ? (
-            <div className="flex justify-center py-8 text-gray-400">Yuklanmoqda...</div>
-          ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <span className="text-5xl mb-3">📭</span>
-              <p className="text-gray-400">Xabar yo'q</p>
-            </div>
-          ) : messages.map(msg => {
-            const isHokim = msg.sender?.role === 'hokim';
-            return (
-              <div key={msg.id} className={`flex ${isHokim ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[70%] flex flex-col gap-1 ${isHokim ? 'items-end' : 'items-start'}`}>
-                  {!isHokim && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 px-1">
-                      {msg.sender?.full_name} · {msg.sender?.mahallas?.name}
-                    </span>
-                  )}
-                  <div className={`rounded-2xl px-4 py-3 text-sm
-                    ${isHokim
-                      ? 'bg-gold-500/10 border border-gold-500/30 text-gray-800 dark:text-gray-100 rounded-br-sm'
-                      : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-slate-200 dark:border-gray-700 rounded-bl-sm'}`}>
-                    {msg.content && <p>{msg.content}</p>}
-                    {msg.attachments?.map(a => (
-                      <div key={a.id} className="mt-2">
-                        {a.mime_type?.startsWith('image/') ? (
-                          <img src={a.url} alt={a.name}
-                            className="max-w-xs rounded-xl cursor-pointer hover:opacity-90"
-                            onClick={() => window.open(a.url, '_blank')} />
-                        ) : (
-                          <a href={a.url} target="_blank" rel="noopener"
-                            className="flex items-center gap-2 bg-slate-100 dark:bg-gray-900/50 rounded-lg px-3 py-2 hover:bg-slate-200 dark:hover:bg-gray-900">
-                            <span>📎</span><span className="text-xs truncate">{a.name}</span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-400 px-1">
-                    {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true, locale: uz })}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-          <div ref={bottomRef} />
-        </div>
+        <MessageList
+          messages={filtered}
+          loading={loading}
+          empty={{ icon: '📭', title: "Xabar yo'q" }}
+          bubbleProps={msg => {
+            const mine = msg.sender?.id === user.id;
+            return {
+              mine,
+              senderLine: !mine
+                ? `${msg.sender?.full_name}${msg.sender?.mahallas?.name ? ' · ' + msg.sender.mahallas.name : ''}`
+                : null,
+              onReply: setReplyingTo,
+              onDelete: mine ? remove : null,
+              onEdit: mine ? edit : null,
+            };
+          }}
+        />
 
-        {/* Input */}
-        <div className="bg-white dark:bg-gray-900 border-t border-slate-200 dark:border-gray-800 p-4">
-          {files.length > 0 && (
-            <div className="flex gap-2 mb-3 flex-wrap">
-              {files.map((f, i) => (
-                <div key={i} className="flex items-center gap-2 bg-slate-100 dark:bg-gray-800 rounded-lg px-3 py-1.5 text-xs text-gray-700 dark:text-gray-300">
-                  <span>{f.type.startsWith('image/') ? '🖼️' : '📎'}</span>
-                  <span className="max-w-24 truncate">{f.name}</span>
-                  <button onClick={() => setFiles(files.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-500">✕</button>
-                </div>
-              ))}
-            </div>
-          )}
-          <form onSubmit={sendReply} className="flex gap-3 items-end">
-            <button type="button" onClick={() => fileRef.current?.click()}
-              className="w-10 h-10 flex-shrink-0 bg-slate-100 dark:bg-gray-800 hover:bg-slate-200 dark:hover:bg-gray-700 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-800 dark:hover:text-white transition-all">
-              📎
-            </button>
-            <input ref={fileRef} type="file" multiple className="hidden" onChange={e => {
-              setFiles(prev => [...prev, ...Array.from(e.target.files || [])].slice(0,5));
-              e.target.value = '';
-            }} />
-            <textarea value={content} onChange={e => setContent(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(e); }}}
-              placeholder={replyTo === 'all' ? 'Barcha raislar uchun javob...' : `${selectedUser?.full_name || 'rais'} ga javob...`}
-              rows={1} className="input flex-1 resize-none" />
-            <button type="submit" disabled={sending || (!content.trim() && !files.length)}
-              className="btn-primary w-10 h-10 flex-shrink-0 p-0 rounded-xl">
-              {sending ? '⏳' : '📤'}
-            </button>
-          </form>
-        </div>
+        <ChatInput
+          onSend={handleSend}
+          sending={sending}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          placeholder={replyMode === 'all'
+            ? 'Barcha raislar uchun xabar...'
+            : `${selectedUser?.full_name || 'Rais'} uchun xabar...`}
+        />
       </div>
     </div>
   );

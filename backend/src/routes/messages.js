@@ -17,8 +17,9 @@ router.get('/', auth, async (req, res) => {
     let query = db
       .from('messages')
       .select(`
-        id, content, message_type, recipients, is_report, created_at,
+        id, content, message_type, recipients, is_report, is_edited, reply_to, created_at,
         sender:users!sender_id(id, full_name, role, mahalla_id, mahallas(name)),
+        reply:messages!reply_to(id, content, message_type, sender:users!sender_id(id, full_name, role)),
         attachments(id, url, name, mime_type, size_bytes)
       `)
       .eq('district_id', districtId)
@@ -66,7 +67,7 @@ router.get('/', auth, async (req, res) => {
 // POST /api/messages — xabar yuborish
 router.post('/', auth, upload.array('files', 5), async (req, res) => {
   try {
-    const { content, recipients, latitude, longitude, accuracy } = req.body;
+    const { content, recipients, reply_to, latitude, longitude, accuracy } = req.body;
     if (!content && (!req.files || req.files.length === 0))
       return res.json({ success: false, message: 'Xabar matni yoki fayl kerak' });
 
@@ -93,9 +94,13 @@ router.post('/', auth, upload.array('files', 5), async (req, res) => {
         content:      content || null,
         message_type: msgType,
         recipients:   parsedRecipients,
+        reply_to:     reply_to || null,
         is_report:    ['rais', 'uyushma'].includes(req.user.role),
       })
-      .select()
+      .select(`
+        *,
+        reply:messages!reply_to(id, content, message_type, sender:users!sender_id(id, full_name, role))
+      `)
       .single();
 
     if (error) throw error;
@@ -216,6 +221,37 @@ router.get('/unread-count', auth, async (req, res) => {
     res.json({ success: true, count: count || 0 });
   } catch {
     res.json({ success: true, count: 0 });
+  }
+});
+
+// GET /api/messages/:id — bitta xabar (real-time inkremental yangilash uchun)
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const { data, error } = await db
+      .from('messages')
+      .select(`
+        id, content, message_type, recipients, is_report, is_edited, reply_to, created_at, sender_id,
+        sender:users!sender_id(id, full_name, role, mahalla_id, mahallas(name)),
+        reply:messages!reply_to(id, content, message_type, sender:users!sender_id(id, full_name, role)),
+        attachments(id, url, name, mime_type, size_bytes)
+      `)
+      .eq('id', req.params.id)
+      .eq('district_id', req.user.district_id)
+      .single();
+
+    if (error || !data) return res.json({ success: false, message: 'Xabar topilmadi' });
+
+    // Rais/uyushma faqat o'ziga tegishli xabarlarni ko'radi
+    if (['rais', 'uyushma'].includes(req.user.role)) {
+      const visible = data.sender_id === req.user.id ||
+        data.recipients === null ||
+        (data.recipients || []).includes(req.user.id);
+      if (!visible) return res.json({ success: false, message: 'Ruxsat yo\'q' });
+    }
+
+    res.json({ success: true, data: { ...data, is_read: false } });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
   }
 });
 
