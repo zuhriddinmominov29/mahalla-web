@@ -28,13 +28,24 @@ router.get('/', auth, async (req, res) => {
 
     if (before) query = query.lt('created_at', before);
 
-    // Rais faqat o'z xabarlarini + hokimning barcha/o'ziga yuborilgan xabarlarini ko'radi
+    // Rais faqat o'z xabarlarini + hokimning umumiy/o'ziga yuborilgan xabarlarini ko'radi.
+    // Boshqa raislarning hisobotlari ko'rinmaydi.
     if (req.user.role === 'rais' || req.user.role === 'uyushma') {
-      query = query.or(
-        `sender_id.eq.${req.user.id},` +
-        `and(recipients.is.null,sender_id.neq.${req.user.id}),` +
-        `recipients.cs.{${req.user.id}}`
-      );
+      const { data: hokims } = await db
+        .from('users')
+        .select('id')
+        .eq('district_id', districtId)
+        .eq('role', 'hokim');
+      const hokimIds = (hokims || []).map(h => h.id);
+
+      const orParts = [
+        `sender_id.eq.${req.user.id}`,
+        `recipients.cs.{${req.user.id}}`,
+      ];
+      if (hokimIds.length)
+        orParts.push(`and(recipients.is.null,sender_id.in.(${hokimIds.join(',')}))`);
+
+      query = query.or(orParts.join(','));
     }
 
     const { data, error } = await query;
@@ -52,7 +63,16 @@ router.get('/', auth, async (req, res) => {
       readSet = new Set((reads || []).map(r => r.message_id));
     }
 
-    const messages = (data || []).map(m => ({
+    // Rais uchun: boshqa raisning xabari reply-quote orqali ham ko'rinmasin
+    const isRais = ['rais', 'uyushma'].includes(req.user.role);
+    const redactReply = m => {
+      if (isRais && m.reply && m.reply.sender?.role !== 'hokim' && m.reply.sender?.id !== req.user.id) {
+        m.reply = { ...m.reply, content: null, message_type: 'hidden' };
+      }
+      return m;
+    };
+
+    const messages = (data || []).map(m => redactReply({
       ...m,
       is_read: readSet.has(m.id),
     })).reverse();
@@ -241,12 +261,18 @@ router.get('/:id', auth, async (req, res) => {
 
     if (error || !data) return res.json({ success: false, message: 'Xabar topilmadi' });
 
-    // Rais/uyushma faqat o'ziga tegishli xabarlarni ko'radi
+    // Rais/uyushma faqat o'z xabarini yoki hokimdan kelgan xabarni ko'radi
     if (['rais', 'uyushma'].includes(req.user.role)) {
+      const fromHokim = data.sender?.role === 'hokim';
       const visible = data.sender_id === req.user.id ||
-        data.recipients === null ||
+        (fromHokim && (data.recipients === null || (data.recipients || []).includes(req.user.id))) ||
         (data.recipients || []).includes(req.user.id);
       if (!visible) return res.json({ success: false, message: 'Ruxsat yo\'q' });
+
+      // Reply-quote orqali boshqa raisning xabari ko'rinmasin
+      if (data.reply && data.reply.sender?.role !== 'hokim' && data.reply.sender?.id !== req.user.id) {
+        data.reply = { ...data.reply, content: null, message_type: 'hidden' };
+      }
     }
 
     res.json({ success: true, data: { ...data, is_read: false } });

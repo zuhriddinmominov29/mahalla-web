@@ -33,6 +33,7 @@ export function groupByDay(messages) {
 // Reply-quote uchun qisqa matn
 export function replyPreviewText(msg) {
   if (!msg) return "O'chirilgan xabar";
+  if (msg.message_type === 'hidden') return '💬 Xabar';
   if (msg.content) return msg.content;
   if (msg.message_type === 'image') return '📷 Rasm';
   if (msg.message_type === 'file') return '📎 Fayl';
